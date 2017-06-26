@@ -3,9 +3,13 @@
  * MSc. Physics Student @ La Sapienza
  * */
 
-#ifndef DOPPIE_CPP_TDC_UTILS_H
-#define DOPPIE_CPP_TDC_UTILS_H
+#ifndef TDC_UTILS_H
+#define TDC_UTILS_H
+
+#include <ctime>
 
 void logErrorAndExit(const char *error_message);
 
-#endif //DOPPIE_CPP_TDC_UTILS_H
+uint64_t customRatio(uint64_t x, uint64_t y);
+
+#endif //TDC_UTILS_H

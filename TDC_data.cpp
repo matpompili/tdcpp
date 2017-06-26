@@ -212,7 +212,8 @@ uint16_t TDC_data::getMaxChannel() const {
 
 /*
  * This method finds n-fold coincidences in the object, as well as the number of single events on each channel.
- * It writes the results in the two files. The method takes the following arguments:
+ * It writes the results in the two files.
+ * Arguments:
  *  - n:                        u16
  *      the ~exact~ number of events that must occur at the same time (modulo coincidence_window).
  *      If more, or less, than n events occur in the coincidence_window, the coincidence will be ignored.
@@ -235,10 +236,10 @@ void TDC_data::findNfoldCoincidences(uint16_t n,
 
 //    Allocate and set to zero the array for single events.
     uint64_t *singles = (uint64_t *) calloc(this->max_channel, sizeof(uint64_t));
-//    coincidence_channel is pointer to an n-size array that is needed to keep
+//    coincidence_channel is a pointer to an n-size array that is needed to keep
 //    track of the events inside a coincidence-window.
     uint16_t *coincidence_channel = (uint16_t *) calloc(n, sizeof(uint16_t));
-//    A map that will hold the count of each kind of coincidence.
+//    A map that will hold the count of each possible coincidence.
     std::map<std::string, uint64_t> coincidences_map;
 
     uint16_t coincidence_channel_index = 0;
@@ -249,37 +250,52 @@ void TDC_data::findNfoldCoincidences(uint16_t n,
     coincidence_channel_index++;
 
     bool is_coincidence_still_good = true;
+    bool is_channel_acceptable;
     std::string coincidence_key;
 
+//    While there are events
     for (uint64_t i = 1; i < this->size; ++i) {
+//        Increase the singles count
         singles[this->channel[i]] += 1;
 
+//        If the event is in the coincidence window
         if (this->timestamp[i] - coincidence_window_start <= coincidence_window) {
+//            If there have not been already too much events in this window
             if (coincidence_channel_index < n) {
-                bool is_channel_acceptable = true;
+//                Check if an event with the same channel as already been detected in this window
+                is_channel_acceptable = true;
                 for (uint16_t j = 0; j < coincidence_channel_index; ++j) {
-                    if (this->channel[i] == coincidence_channel[j]) is_channel_acceptable = false;
+                    if (this->channel[i] == coincidence_channel[j]) {
+                        is_channel_acceptable = false;
+                        break;
+                    }
                 }
 
+//                Add the channel to the coincidence
                 if (is_channel_acceptable) {
                     coincidence_channel[coincidence_channel_index] = this->channel[i];
                     coincidence_channel_index++;
                 }
             } else {
+//                Mark the coincidence as not usable, too many events.
                 is_coincidence_still_good = false;
             }
         } else {
+//            Save the last coincidence, if there is one
             if (is_coincidence_still_good && (coincidence_channel_index == n)) {
                 coincidence_key = "";
+//                Create the key for this coincidence
                 for (uint16_t j = 0; j < n; ++j) {
                     coincidence_key.append(std::to_string(coincidence_channel[j] + 1));
                     coincidence_key.append("_");
                 }
+//                Remove the last underscore
                 coincidence_key.pop_back();
+//                Increase the count
                 coincidences_map[coincidence_key] += 1;
             }
 
-
+//            Start a new window
             coincidence_window_start = this->timestamp[i];
             coincidence_channel[0] = this->channel[i];
             coincidence_channel_index = 1;
@@ -291,6 +307,8 @@ void TDC_data::findNfoldCoincidences(uint16_t n,
 
     }
 
+
+//    Save the singles
     FILE *singles_file = fopen(singles_file_name, "w");
 
     for (uint64_t channel_index = 0; channel_index < this->max_channel; ++channel_index) {
@@ -301,6 +319,7 @@ void TDC_data::findNfoldCoincidences(uint16_t n,
     free(singles);
     fclose(singles_file);
 
+//    Save the coincidences
     FILE *coincidences_file = fopen(coincidences_file_name, "w");
 
     for (auto const &map_entry : coincidences_map) {
@@ -308,6 +327,27 @@ void TDC_data::findNfoldCoincidences(uint16_t n,
     }
     free(coincidence_channel);
     fclose(coincidences_file);
+}
+
+/*
+ * This method print to file the timestamps and relative channels of the object.
+ * Arguments:
+ *  - *output_file_path:    const char pointer
+ *      the name of the output file.
+ * */
+void TDC_data::printDataToFile(const char *output_file_path) {
+    FILE* output_file = fopen(output_file_path, "w");
+    if (output_file) {
+        for (uint64_t i = 0; i < this->size; ++i) {
+            fprintf(output_file, "%" PRIu64 " %" PRIu16 "\n", this->timestamp[i], this->getChannel(i));
+        }
+    } else {
+        std::string error_string ("Can't write to  ");
+        error_string.append(output_file_path);
+        logErrorAndExit(error_string.c_str());
+    }
+
+    fclose(output_file);
 }
 
 

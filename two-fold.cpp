@@ -32,6 +32,7 @@ int main() {
     third_thread.join();
 
     TDC_merger *first_plus_second = new TDC_merger(first_file, second_file);
+
     delete first_file;
     delete second_file;
 
@@ -40,6 +41,7 @@ int main() {
     delete third_file;
 
     all_together->findNfoldCoincidences(2, "singles.temp", "coincidences.temp", 160);
+    all_together->printDataToFile("all_timestamps.txt");
 
     delete all_together;
 

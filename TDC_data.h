@@ -119,8 +119,10 @@ public:
                                const char *coincidences_file_name,
                                uint64_t coincidence_window);
 
+    void printDataToFile(const char *output_file_path);
+
 /*
- * The following methods are public, this means that they can be called anywhere.
+ * The following methods are private, this means that they can be called only by the object itself.
  * Documentation about them is available in TDC_data.cpp
  * */
 
