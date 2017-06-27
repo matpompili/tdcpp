@@ -21,15 +21,16 @@ TDC_merger::TDC_merger(TDC_data *first_data, TDC_data *second_data) {
     this->first_data = first_data;
     this->second_data = second_data;
 
-//    Find the matching index between the two objects. Also find which object is delayed.
-    this->findMatch(2000, 20);
-
-    this->merge(100);
-
 //    This is needed to ensure channels are named correctly.
     this->box_number = 1;
     this->clock = this->first_data->getClockChannel();
     this->max_channel = this->first_data->getMaxChannel() + this->second_data->getMaxChannel();
+
+    this->offset = (int16_t *) calloc(this->max_channel, sizeof(int16_t));
+
+//    Find the matching index between the two objects. Also find which object is delayed.
+    this->findMatch(200, 20);
+    this->merge(100);
 }
 
 /*
@@ -42,18 +43,6 @@ TDC_merger::~TDC_merger() {
     free(this->first_clocks);
     free(this->second_clocks);
 }
-
-/*
- * This function gives abs(x-y), when x and y are two u64.
- * */
-uint64_t TDC_merger::abs_diff_64(uint64_t x, uint64_t y) {
-    if (x > y) {
-        return x - y;
-    } else {
-        return y - x;
-    }
-}
-
 
 /*
  * This method finds the first common clock event in the two TDC_data objects.
@@ -132,10 +121,10 @@ void TDC_merger::findMatch(uint64_t max_shift, uint64_t time_depth) {
     }
 
     if (min_distance_forward < min_distance_backward) {
-        this->matching_clock = min_distance_forward_position;
+        this->matching_clock = min_distance_forward_position + 1;
         this->box_to_match = 2;
     } else {
-        this->matching_clock = min_distance_backward_position;
+        this->matching_clock = min_distance_backward_position + 1;
         this->box_to_match = 1;
     }
 
@@ -151,11 +140,11 @@ void TDC_merger::merge(uint64_t max_fit_points) {
         starting_index_first = this->first_data->findNthClock(this->matching_clock);
         starting_index_second = this->second_data->findNthClock(1);
         matching_clock_first = this->matching_clock;
-        matching_clock_second = 0;
+        matching_clock_second = 1;
     } else {
         starting_index_first = this->first_data->findNthClock(1);
         starting_index_second = this->second_data->findNthClock(this->matching_clock);
-        matching_clock_first = 0;
+        matching_clock_first = 1;
         matching_clock_second = this->matching_clock;
     }
 

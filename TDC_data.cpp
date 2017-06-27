@@ -72,6 +72,7 @@ void TDC_data::loadFromFile(const char *data_file_path, uint16_t clock, uint16_t
     this->clock = clock;
     this->box_number = box_number;
     this->max_channel = 8;
+    this->offset = (int16_t *) calloc(this->max_channel, sizeof(int16_t));
 }
 
 /*
@@ -350,6 +351,40 @@ void TDC_data::printDataToFile(const char *output_file_path) {
     fclose(output_file);
 }
 
+void TDC_data::setChannelOffset(const char *offset_file_path) {
+    FILE* offset_file = fopen(offset_file_path, "r");
+    int16_t min_offset = 0;
+
+    if (offset_file) {
+        for (uint16_t i = 0; i < this->max_channel; ++i) {
+            fscanf(offset_file, "%" PRId16 "", this->offset + i);
+            if (min_offset > this->offset[i]) min_offset = this->offset[i];
+        }
+
+        this->timestamp[0] += -min_offset + this->offset[this->channel[0]];
+        uint64_t sorting_timestamp = this->timestamp[0];
+        uint16_t sorting_channel = this->channel[0];
+        uint64_t j;
 
 
+        for (uint64_t i = 1; i < this->size; ++i) {
+            this->timestamp[i] += -min_offset + this->offset[this->channel[i]];
+            sorting_timestamp = this->timestamp[i];
+            j = i -1;
+            while ( (j >= 0) && (this->timestamp[j] > sorting_timestamp)) {
+                this->timestamp[j+1] = this->timestamp[j];
+                this->channel[j+1] = this->channel[j];
+                j--;
+                this->timestamp[j+1] = sorting_timestamp;
+                this->channel[j+1] = sorting_channel;
+            }
+        }
 
+    } else {
+        std::string error_string ("Can't read offset file  ");
+        error_string.append(offset_file_path);
+        logErrorAndExit(error_string.c_str());
+    }
+
+    fclose(offset_file);
+}

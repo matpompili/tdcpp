@@ -26,8 +26,13 @@ void logErrorAndExit(const char *error_message) {
     exit(EXIT_FAILURE);
 }
 
+uint64_t abs_diff_64(uint64_t x, uint64_t y) {
+    if (x > y) return x - y;
+    return y - x;
+}
+
 uint64_t customRatio(uint64_t x, uint64_t y) {
-    if ( x == 0 || y == 0 ) return 0;
+    if (x == 0 || y == 0) return 0;
     if (x > y) return x/y;
     return y/x;
 }

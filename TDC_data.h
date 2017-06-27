@@ -55,6 +55,9 @@ class TDC_data {
  *      
  *  - *channel:     u16 pointer
  *      the pointed array contains the channels.
+ *
+ *  - *offset:      s16 pointer
+ *      the pointed array contains the offset of each channel.
  *      
  *  - size:         u64
  *      the number of events in the object. Also the size of the arrays pointed by *timestamp and *channel.
@@ -74,13 +77,14 @@ class TDC_data {
  * */
 
 protected:
-    uint64_t *timestamp;
-    uint16_t *channel;
-    uint64_t size;
-    uint16_t max_channel;
-    uint16_t clock;
-    uint16_t box_number;
-    FILE    *data_file;
+    uint64_t    *timestamp;
+    uint16_t    *channel;
+    int16_t     *offset;
+    uint64_t    size;
+    uint16_t    max_channel;
+    uint16_t    clock;
+    uint16_t    box_number;
+    FILE        *data_file;
 
 /*
  * The following methods are public, this means that they can be called anywhere.
@@ -120,6 +124,8 @@ public:
                                uint64_t coincidence_window);
 
     void printDataToFile(const char *output_file_path);
+
+    void setChannelOffset(const char *offset_file_path);
 
 /*
  * The following methods are private, this means that they can be called only by the object itself.

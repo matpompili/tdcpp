@@ -1,5 +1,5 @@
 /*
- * Created by Matteo Pompili on 4/22/17.
+ * Created by Matteo Pompili on 6/27/17.
  * MSc. Physics Student @ La Sapienza
  * */
 
@@ -40,8 +40,7 @@ int main() {
     delete first_plus_second;
     delete third_file;
 
-    all_together->setChannelOffset("offset.conf");
-    all_together->findNfoldCoincidences(2, "singles.temp", "coincidences.temp", 25);
+    all_together->printDataToFile("all_timestamps_before.txt");
 
     delete all_together;
 

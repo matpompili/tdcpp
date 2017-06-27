@@ -59,8 +59,6 @@ private:
     void findMatch(uint64_t max_shift, uint64_t time_depth);
 
     void merge(uint64_t max_fit_points);
-
-    uint64_t abs_diff_64(uint64_t x, uint64_t y);
 };
 
 

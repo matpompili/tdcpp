@@ -10,6 +10,8 @@
 
 void logErrorAndExit(const char *error_message);
 
+uint64_t abs_diff_64(uint64_t x, uint64_t y);
+
 uint64_t customRatio(uint64_t x, uint64_t y);
 
 #endif //TDC_UTILS_H
