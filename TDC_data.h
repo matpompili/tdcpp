@@ -1,15 +1,17 @@
-/*
- * Created by Matteo Pompili on 4/22/17.
- * MSc. Physics Student @ La Sapienza
- * */
+/**
+ * \class TDC_data
+ *
+ * \brief This class is used to read and use timestamps data from ID800-TDC.
+ *
+ * \author $Author: Matteo Pompili$
+ *
+ * Contact: matpompili\@ gmail.com
+ *
+ * Created on: Apr 22 2017
+ */
 
 #ifndef TDC_DATA_H
 #define TDC_DATA_H
-
-/*
- * This class is used to read timestamps data from ID800-TDC
- * It also implements the method used to find the n-fold coincidences.
- * */
 
 #include <stdint-gcc.h>
 #include <cstdio>
@@ -18,12 +20,12 @@
 #include <cinttypes>
 #include "TDC_utils.h"
 
-/*
+/**
  * The timestamps file has a 40 byte header that has to be skipped
  * */
 #define TDC_HEADER_SIZE 40
 
-/*
+/**
  * An event is made of:
  *  - timestamp:  8byte,
  *  - channel:    2byte,
@@ -33,108 +35,185 @@
 #define TDC_CHANNEL_SIZE 2
 #define TDC_RECORD_SIZE (TDC_TIMESTAMP_SIZE + TDC_CHANNEL_SIZE)
 
-/*
+/**
  * A bin is equivalent to 81ps (on average).
  * */
 #define TDC_BIN_SIZE 81E-12
 
-/*
+/**
  * In one second (1s) there are 12345679012 bins.
  * */
 #define TDC_ONE_SEC_BINS 12345679012
 
-
+/**
+ * This class is used to read and use timestamps data from ID800-TDC.
+ */
 class TDC_data {
 
-/*
- * The following members are protected so they can be accessed directly from
- * derived class.
- *
- *  - *timestamp:   u64 pointer
- *      the pointed array contains the timestamps.
- *      
- *  - *channel:     u16 pointer
- *      the pointed array contains the channels.
- *
- *  - *offset:      s16 pointer
- *      the pointed array contains the offset of each channel.
- *      
- *  - size:         u64
- *      the number of events in the object. Also the size of the arrays pointed by *timestamp and *channel.
- *      
- *  - max_channel:  u16
- *      the highest channel number.
- *      
- *  - clock:      u16
- *      the channel that is used as clock.
- *      
- *  - box_number:   u16
- *      the box from which the data comes from. This is used to give the correct channel number,
- *      check the getChannel method for further information.
- *      
- *  - data_file:    FILE pointer
- *      the binary file from which the data is read.
- * */
-
 protected:
+    /**
+     * A pointer to the timestamp array.
+     * */
     uint64_t    *timestamp;
-    uint16_t    *channel;
-    int16_t     *offset;
-    uint64_t    size;
-    uint16_t    max_channel;
-    uint16_t    clock;
-    uint16_t    box_number;
-    FILE        *data_file;
 
-/*
- * The following methods are public, this means that they can be called anywhere.
- * Documentation about them is available in TDC_data.cpp
- * */
+    /**
+     * A pointer to the channel array.
+     * */
+    uint16_t    *channel;
+
+    /**
+     * A pointer to the offset array.
+     * */
+    int16_t     *offset;
+
+    /**
+     * @brief The number of events in the object.
+     *
+     * It is also the size of the arrays pointed by #timestamp and #channel.
+     * */
+    uint64_t    size;
+
+    /**
+     * The number of channels in the object.
+     * */
+    uint16_t    num_channels;
+
+    /**
+     * The channel that is used as a clock.
+     * */
+    uint16_t    clock;
+
+    /**
+     * @brief The number of the box from which the data comes from.
+     *
+     * This is used to give the correct channel number, check the getChannel() method for further information.
+     * */
+    uint16_t    box_number;
 
 public:
+    /**
+     * This is the default constructor.
+     * It is called only by derived classes.
+     * */
     TDC_data();
 
+    /**
+     * This is the default destructor.
+     * It frees the arrays.
+     * */
     virtual ~TDC_data();
 
+    /**
+     * This is an additional constructor.
+     * It must be used when you need to read a timestamp binary file.
+     *
+     * @param data_file_path The path of the timestamp file to be loaded.
+     * @param clock The channel that is going to be used as clock.
+     * @param box_number The number of the box the data come from.
+     */
     void loadFromFile(const char *data_file_path,
                       uint16_t clock,
                       uint16_t box_number);
 
+    /**
+     * @param index The index of the event
+     * @return The timestamp of the event
+     */
     uint64_t getTimestamp(uint64_t index) const;
 
+    /**
+     * This method takes into account the box number, it works as follows:
+     * The first box has box_number = 1. The channels, as given by the ID800, go from 0 to max_channel-1.
+     * They will be returned by this method as 1 to max_channel.
+     * If the box_number is higher than 1, 8 * (box_number-1) will be added to the result.
+     * It is worth noting that inside the channel array the channels are always stored as going from 0 to max_channel-1.
+     *
+     * @param index The index of the event
+     * @return The channel of the event
+     */
     virtual uint16_t getChannel(uint64_t index) const;
 
+    /**
+     * @return The number of the box
+     */
     uint16_t getBoxNumber() const;
 
+    /**
+     * @return The number of events in the object
+     */
     uint64_t getSize() const;
 
+    /**
+     * @return The channel of the clock
+     */
     uint16_t getClockChannel() const;
 
+    /**
+     * A method to retrieve the clock events and their number.
+     * @param destination_array A pointer to an array that will be filled with the clock events.
+     *      Must be already allocated.
+     * @return The number of clock events.
+     */
     uint64_t getClocks(uint64_t *destination_array);
 
-    uint64_t findNthClock(uint64_t clock);
+    /**
+     * @param n The number of clock event to search for.
+     * @return The index of the nth clock event.
+     */
+    uint64_t findNthClock(uint64_t n);
 
+    /**
+     * Check if the event in position #index is a clock.
+     * @param index The index of the event
+     * @return True if the event is a clock, False otherwise.
+     */
     bool isClock(uint64_t index) const;
 
-    uint16_t getMaxChannel() const;
+    /**
+     * @return The number of channels in the object.
+     */
+    uint16_t getChannelsNumber() const;
 
+    /**
+     * @brief This method finds n-fold coincidences in the object.
+     * It also find the number of single events on each channel.
+     * @param n The *exact* number of events that must occur at the same time (modulo coincidence_window).
+     *      If more, or less, than n events occur in the coincidence_window, the coincidence will be ignored.
+     * @param singles_file_name The name of the file in which the single events count will be saved.
+     * @param coincidences_file_name The name of the file in which the coincidence events will be saved.
+     * @param coincidence_window The maximum time distance *in bins* in which two or more events are considered coincident.
+     */
     void findNfoldCoincidences(uint16_t n,
                                const char *singles_file_name,
                                const char *coincidences_file_name,
                                uint64_t coincidence_window);
 
+    /**
+     * Print to file the timestamps and relative channels in the object.
+     * @param output_file_path The name of the output file.
+     */
     void printDataToFile(const char *output_file_path);
 
+    /**
+     * Set an offset per channel and reorder data if necessary.
+     * @param offset_file_path The name of the offset file.
+     */
     void setChannelOffset(const char *offset_file_path);
 
-/*
- * The following methods are private, this means that they can be called only by the object itself.
- * Documentation about them is available in TDC_data.cpp
- * */
-
 private:
-    uint64_t getFileSize();
+    /**
+     * This method finds the number of events inside the file.
+     * @param data_file A pointer to an open file.
+     * @return The number of events in the file.
+     */
+    uint64_t getFileSize(FILE *data_file);
 
+    /**
+     * This method finds the index at which one second was passed since the first event.
+     * It uses binary search.
+     *
+     * @return The index corresponding to one second of real time.
+     */
     uint64_t findOneSecondIndex();
 };
 
