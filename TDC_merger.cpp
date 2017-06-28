@@ -24,9 +24,9 @@ TDC_merger::TDC_merger(TDC_data *first_data, TDC_data *second_data) {
 //    This is needed to ensure channels are named correctly.
     this->box_number = 1;
     this->clock = this->first_data->getClockChannel();
-    this->max_channel = this->first_data->getMaxChannel() + this->second_data->getMaxChannel();
+    this->num_channels = this->first_data->getChannelsNumber() + this->second_data->getChannelsNumber();
 
-    this->offset = (int16_t *) calloc(this->max_channel, sizeof(int16_t));
+    this->offset = (int16_t *) calloc(this->num_channels, sizeof(int16_t));
 
 //    Find the matching index between the two objects. Also find which object is delayed.
     this->findMatch(200, 20);

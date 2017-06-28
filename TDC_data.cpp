@@ -7,33 +7,24 @@
 #include <cstring>
 #include "TDC_data.h"
 
-/*
- * This is the default constructor. It is called only by derived classes.
- * */
 TDC_data::TDC_data() {
 }
 
-/*
- * This is the default destructor. It frees the arrays.
- * */
 TDC_data::~TDC_data() {
     free(this->timestamp);
     free(this->channel);
 }
 
-/*
- * This is an additional constructor. It must be used when you need to read a timestamp binary file.
- * */
 void TDC_data::loadFromFile(const char *data_file_path, uint16_t clock, uint16_t box_number) {
-//    Open the file
-    this->data_file = fopen(data_file_path, "rb");
+    FILE *data_file = fopen(data_file_path, "rb");
+    ///Open the file
 
-    if (this->data_file) {
-//        If the file is available
-        this->size = getFileSize();
+    if (data_file) {
+        ///If the file is available
+        this->size = getFileSize(data_file);
 
         if (this->size > 0) {
-//            And it is not empty
+            ///And it is not empty
 
             char* read_buffer = (char*) malloc(this->size * TDC_RECORD_SIZE);
             this->timestamp = (uint64_t *) malloc(this->size * sizeof(uint64_t));
@@ -42,13 +33,15 @@ void TDC_data::loadFromFile(const char *data_file_path, uint16_t clock, uint16_t
             if( read_buffer == NULL || this->timestamp == NULL || this->channel == NULL) {
                 logErrorAndExit("Could not allocate the memory to read a file.");
             }
-//            Seek until the end if the header
-            fseek(this->data_file, TDC_HEADER_SIZE, SEEK_SET);
 
-//            Read the whole file in the buffer. Faster than reading record by record.
-            fread(read_buffer, TDC_RECORD_SIZE, this->size, this->data_file);
-//            Close the file, it is not longer needed
-            fclose(this->data_file);
+            fseek(data_file, TDC_HEADER_SIZE, SEEK_SET);
+            ///Seek until the end if the header
+
+            fread(read_buffer, TDC_RECORD_SIZE, this->size, data_file);
+            ///Read the whole file in the buffer. Faster than reading record by record.
+
+            fclose(data_file);
+            ///Close the file, it is not longer needed
 
             for (int i = 0; i < this->size; i++) {
                 memcpy(this->timestamp+i, read_buffer + i*TDC_RECORD_SIZE, TDC_TIMESTAMP_SIZE);
@@ -57,36 +50,38 @@ void TDC_data::loadFromFile(const char *data_file_path, uint16_t clock, uint16_t
 
             free(read_buffer);
         } else {
-//            Close the file, it is not longer needed
-            fclose(this->data_file);
+            fclose(data_file);
+            ///Close the file, it is not longer needed
         }
 
     } else {
-//        The file was not found. Throw an error and exit.
         std::string error_string ("File not found, ");
         error_string.append(data_file_path);
         logErrorAndExit(error_string.c_str());
+        ///The file was not found. Throw an error and exit.
     }
 
-//    Set the remaining members of the class
+    /**
+     * Set the remaining members of the class.
+     */
     this->clock = clock;
     this->box_number = box_number;
-    this->max_channel = 8;
-    this->offset = (int16_t *) calloc(this->max_channel, sizeof(int16_t));
+    this->num_channels = 8;
+    this->offset = (int16_t *) calloc(this->num_channels, sizeof(int16_t));
 }
 
-/*
- * This method finds the number of events inside the file.
- * */
-uint64_t TDC_data::getFileSize() {
-    if (this->data_file) {
-//        Get starting position
-        const int64_t current_position = ftell(this->data_file);
-//        Go to EOF and get the position
-        fseek(this->data_file, 0, SEEK_END);
-        int64_t file_size = ftell(this->data_file);
-//        Get back to the beginning
-        fseek(this->data_file, current_position, SEEK_SET);
+uint64_t TDC_data::getFileSize(FILE *data_file) {
+    if (data_file) {
+        const int64_t current_position = ftell(data_file);
+        ///Get starting position
+
+        fseek(data_file, 0, SEEK_END);
+        ///Go to EOF and get the position
+
+        int64_t file_size = ftell(data_file);
+        ///Get back to the beginning
+
+        fseek(data_file, current_position, SEEK_SET);
 //        If the file is big enough, i.e. at least the header and one record
         if (file_size > TDC_HEADER_SIZE + TDC_RECORD_SIZE) {
 //            Get the number of records inside the file
@@ -103,43 +98,22 @@ uint64_t TDC_data::getFileSize() {
     }
 }
 
-/*
- * Getter method for the timestamp array
- * */
 uint64_t TDC_data::getTimestamp(uint64_t index) const {
     return *(this->timestamp + index);
 }
 
-/*
- * Getter method for the channel array.
- * This one takes into account the box number, it works as follows:
- * The first box has box_number = 1. The channels, as given by the ID800, go from 0 to max_channel-1.
- * They will be returned by this method as 1 to max_channel.
- * If the box_number is higher than 1, 8 * (box_number-1) will be added to the result.
- * It is worth noting that inside the channel array the channels are always stored as going from 0 to max_channel-1.
- * */
 uint16_t TDC_data::getChannel(uint64_t index) const {
     return (uint16_t) (*(this->channel + index) + (this->box_number - 1) * 8 + 1);
 }
 
-/*
- * Getter method for size. This is the size of both the timestamp array and the channel array.
- * */
 uint64_t TDC_data::getSize() const {
     return this->size;
 }
 
-/*
- * Getter method for box_number.
- * */
 uint16_t TDC_data::getBoxNumber() const {
     return this->box_number;
 }
 
-/*
- * This method finds the index at which one second was passed since the first event.
- * It uses binary search.
- * */
 uint64_t TDC_data::findOneSecondIndex() {
     uint64_t start_index = 0;
     uint64_t end_index = this->size - 1;
@@ -160,9 +134,6 @@ uint64_t TDC_data::findOneSecondIndex() {
     return start_index;
 }
 
-/*
- * This method returns the number of clock events in the object, as well as an array with the clock events.
- * */
 uint64_t TDC_data::getClocks(uint64_t *destination_array) {
     uint64_t index = 0;
     for (int i = 0; i < this->size; ++i) {
@@ -177,66 +148,35 @@ uint64_t TDC_data::getClocks(uint64_t *destination_array) {
     return index;
 }
 
-/*
- * This method returns the index of the nth trigger.
- * */
-uint64_t TDC_data::findNthClock(uint64_t trigger) {
+uint64_t TDC_data::findNthClock(uint64_t n) {
     uint64_t index = 0;
     do {
-        if (*(this->channel + index) + 1 == this->clock) trigger--;
+        if (*(this->channel + index) + 1 == this->clock) n--;
         index++;
-    } while (trigger > 0);
+    } while (n > 0);
 
     return index - 1;
 }
 
-/*
- * This method returns true if the event is a trigger, false otherwise.
- * */
 bool TDC_data::isClock(uint64_t index) const {
     return (this->channel[index] + 1 == this->clock);
 }
 
-/*
- * Getter for the trigger channel.
- * */
 uint16_t TDC_data::getClockChannel() const {
     return this->clock;
 }
 
-/*
- * Getter for the max_channel
- * */
-uint16_t TDC_data::getMaxChannel() const {
-    return max_channel;
+uint16_t TDC_data::getChannelsNumber() const {
+    return num_channels;
 }
 
-/*
- * This method finds n-fold coincidences in the object, as well as the number of single events on each channel.
- * It writes the results in the two files.
- * Arguments:
- *  - n:                        u16
- *      the ~exact~ number of events that must occur at the same time (modulo coincidence_window).
- *      If more, or less, than n events occur in the coincidence_window, the coincidence will be ignored.
- *
- *  - singles_file_name:        const char pointer
- *      the name of the file in which the single events count will be saved.
- *
- *  - coincidence_file_name:    const char pointer
- *      the name of the file in which the coincidence events will be saved.
- *
- *  - coincidence_window:       u64
- *      the maximum time distance ~in bins~ in which two or more events are considered coincident.
- *      Note: not real time, bins!
- *
- * */
 void TDC_data::findNfoldCoincidences(uint16_t n,
                                      const char *singles_file_name,
                                      const char *coincidences_file_name,
                                      uint64_t coincidence_window) {
 
 //    Allocate and set to zero the array for single events.
-    uint64_t *singles = (uint64_t *) calloc(this->max_channel, sizeof(uint64_t));
+    uint64_t *singles = (uint64_t *) calloc(this->num_channels, sizeof(uint64_t));
 //    coincidence_channel is a pointer to an n-size array that is needed to keep
 //    track of the events inside a coincidence-window.
     uint16_t *coincidence_channel = (uint16_t *) calloc(n, sizeof(uint16_t));
@@ -312,7 +252,7 @@ void TDC_data::findNfoldCoincidences(uint16_t n,
 //    Save the singles
     FILE *singles_file = fopen(singles_file_name, "w");
 
-    for (uint64_t channel_index = 0; channel_index < this->max_channel; ++channel_index) {
+    for (uint64_t channel_index = 0; channel_index < this->num_channels; ++channel_index) {
         if (singles[channel_index] != 0) {
             fprintf(singles_file, "%" PRIu64 "\t%" PRIu64 "\n", channel_index + 1, singles[channel_index]);
         }
@@ -356,7 +296,7 @@ void TDC_data::setChannelOffset(const char *offset_file_path) {
     int16_t min_offset = 0;
 
     if (offset_file) {
-        for (uint16_t i = 0; i < this->max_channel; ++i) {
+        for (uint16_t i = 0; i < this->num_channels; ++i) {
             fscanf(offset_file, "%" PRId16 "", this->offset + i);
             if (min_offset > this->offset[i]) min_offset = this->offset[i];
         }

@@ -49,3 +49,5 @@ CTestTestfile.cmake
 *.app
 
 cmake-build-debug/
+
+doc/
