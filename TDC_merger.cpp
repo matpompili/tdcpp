@@ -23,8 +23,8 @@ TDC_merger::TDC_merger(TDC_data *first_data, TDC_data *second_data) {
 
 //    This is needed to ensure channels are named correctly.
     this->box_number = 1;
-    this->clock = this->first_data->getClockChannel();
-    this->num_channels = this->first_data->getChannelsNumber() + this->second_data->getChannelsNumber();
+    this->clock = this->first_data->get_clock_channel();
+    this->num_channels = this->first_data->get_channels_number() + this->second_data->get_channels_number();
 
     this->offset = (int16_t *) calloc(this->num_channels, sizeof(int16_t));
 
@@ -56,11 +56,11 @@ TDC_merger::~TDC_merger() {
  * */
 void TDC_merger::findMatch(uint64_t max_shift, uint64_t time_depth) {
 //    Allocate the arrays that will contains the clock events of the two objects.
-    this->first_clocks = (uint64_t *) malloc(this->first_data->getSize() * sizeof(uint64_t));
-    this->second_clocks = (uint64_t *) malloc(this->second_data->getSize() * sizeof(uint64_t));
+    this->first_clocks = (uint64_t *) malloc(this->first_data->get_size() * sizeof(uint64_t));
+    this->second_clocks = (uint64_t *) malloc(this->second_data->get_size() * sizeof(uint64_t));
 //    Get the clock events, as well as their count.
-    this->num_first_clocks = this->first_data->getClocks(this->first_clocks);
-    this->num_second_clocks = this->second_data->getClocks(this->second_clocks);
+    this->num_first_clocks = this->first_data->get_clock_array(this->first_clocks);
+    this->num_second_clocks = this->second_data->get_clock_array(this->second_clocks);
 
 //    Allocate the arrays for the time differences between clock events.
     uint64_t *first_clock_deltas = (uint64_t *) malloc((this->num_first_clocks - 1) * sizeof(uint64_t));
@@ -137,13 +137,13 @@ void TDC_merger::merge(uint64_t max_fit_points) {
     uint64_t matching_clock_first, matching_clock_second;
 
     if (this->box_to_match == 1) {
-        starting_index_first = this->first_data->findNthClock(this->matching_clock);
-        starting_index_second = this->second_data->findNthClock(1);
+        starting_index_first = this->first_data->find_nth_clock(this->matching_clock);
+        starting_index_second = this->second_data->find_nth_clock(1);
         matching_clock_first = this->matching_clock;
         matching_clock_second = 1;
     } else {
-        starting_index_first = this->first_data->findNthClock(1);
-        starting_index_second = this->second_data->findNthClock(this->matching_clock);
+        starting_index_first = this->first_data->find_nth_clock(1);
+        starting_index_second = this->second_data->find_nth_clock(this->matching_clock);
         matching_clock_first = 1;
         matching_clock_second = this->matching_clock;
     }
@@ -185,35 +185,35 @@ void TDC_merger::merge(uint64_t max_fit_points) {
     double correction_slope = x_times_y / x_squared;
 
     uint64_t *matched_first_timestamps = (uint64_t *) malloc(
-            (this->first_data->getSize() - starting_index_first) * sizeof(uint64_t));
+            (this->first_data->get_size() - starting_index_first) * sizeof(uint64_t));
     uint64_t *matched_second_timestamps = (uint64_t *) malloc(
-            (this->second_data->getSize() - starting_index_second) * sizeof(uint64_t));
+            (this->second_data->get_size() - starting_index_second) * sizeof(uint64_t));
 
-    /*for (uint64_t i = starting_index_first; i < this->first_data->getSize(); ++i) {
+    /*for (uint64_t i = starting_index_first; i < this->first_data->get_size(); ++i) {
         matched_first_timestamps[i] =
-                this->first_data->getTimestamp(i) - this->first_data->getTimestamp(starting_index_first);
+                this->first_data->getTimestamp(i) - this->first_data->get_timestamp(starting_index_first);
     }*/
 
-    for (uint64_t i = 0; i < this->first_data->getSize() - starting_index_first; ++i) {
+    for (uint64_t i = 0; i < this->first_data->get_size() - starting_index_first; ++i) {
         matched_first_timestamps[i] =
-                this->first_data->getTimestamp(i + starting_index_first) -
-                        this->first_data->getTimestamp(starting_index_first);
+                this->first_data->get_timestamp(i + starting_index_first) -
+                        this->first_data->get_timestamp(starting_index_first);
     }
 
-/*    for (uint64_t i = starting_index_second; i < this->second_data->getSize(); ++i) {
+/*    for (uint64_t i = starting_index_second; i < this->second_data->get_size(); ++i) {
         matched_second_timestamps[i] =
-                this->second_data->getTimestamp(i) - this->second_data->getTimestamp(starting_index_second);
+                this->second_data->getTimestamp(i) - this->second_data->get_timestamp(starting_index_second);
         matched_second_timestamps[i] = (uint64_t) llround((double) matched_second_timestamps[i] / correction_slope);
     }*/
 
-    for (uint64_t i = 0; i < this->second_data->getSize() - starting_index_second; ++i) {
+    for (uint64_t i = 0; i < this->second_data->get_size() - starting_index_second; ++i) {
         matched_second_timestamps[i] =
-                this->second_data->getTimestamp(i + starting_index_second) -
-                        this->second_data->getTimestamp(starting_index_second);
+                this->second_data->get_timestamp(i + starting_index_second) -
+                        this->second_data->get_timestamp(starting_index_second);
         matched_second_timestamps[i] = (uint64_t) llround((double) matched_second_timestamps[i] / correction_slope);
     }
 
-    this->size = this->first_data->getSize() + this->second_data->getSize()
+    this->size = this->first_data->get_size() + this->second_data->get_size()
                  - starting_index_first - starting_index_second - number_matching_clock_second;
     this->timestamp = (uint64_t *) malloc(this->size * sizeof(uint64_t));
     this->channel = (uint16_t *) malloc(this->size * sizeof(uint16_t));
@@ -221,36 +221,37 @@ void TDC_merger::merge(uint64_t max_fit_points) {
     uint64_t joint_index = 0, first_index = 0, second_index = 0;
     bool end_not_reached = true;
     do {
-        if (first_index < this->first_data->getSize() - starting_index_first) {
-            if (second_index < this->second_data->getSize() - starting_index_second) {
-                while (this->second_data->isClock(second_index + starting_index_second)) {
+        if (first_index < this->first_data->get_size() - starting_index_first) {
+            if (second_index < this->second_data->get_size() - starting_index_second) {
+                while (this->second_data->is_clock(second_index + starting_index_second)) {
                     second_index++;
                 }
 
                 if (matched_first_timestamps[first_index] < matched_second_timestamps[second_index]) {
                     this->timestamp[joint_index] = matched_first_timestamps[first_index];
-                    this->channel[joint_index] = this->first_data->getChannel(first_index + starting_index_first) - 1;
+                    this->channel[joint_index] = this->first_data->get_channel(first_index + starting_index_first) - 1;
                     first_index++;
                 } else {
                     this->timestamp[joint_index] = matched_second_timestamps[second_index];
-                    this->channel[joint_index] = this->second_data->getChannel(second_index + starting_index_second) - 1;
+                    this->channel[joint_index] =
+                            this->second_data->get_channel(second_index + starting_index_second) - 1;
                     second_index++;
                 }
 
                 joint_index++;
             } else {
                 this->timestamp[joint_index] = matched_first_timestamps[first_index];
-                this->channel[joint_index] = this->first_data->getChannel(first_index + starting_index_first) - 1;
+                this->channel[joint_index] = this->first_data->get_channel(first_index + starting_index_first) - 1;
                 first_index++;
             }
         } else {
-            if (second_index < this->second_data->getSize() - starting_index_second) {
-                while (this->second_data->isClock(second_index + starting_index_second)) {
+            if (second_index < this->second_data->get_size() - starting_index_second) {
+                while (this->second_data->is_clock(second_index + starting_index_second)) {
                     second_index++;
                 }
 
                 this->timestamp[joint_index] = matched_second_timestamps[second_index];
-                this->channel[joint_index] = this->second_data->getChannel(second_index + starting_index_second) - 1;
+                this->channel[joint_index] = this->second_data->get_channel(second_index + starting_index_second) - 1;
                 second_index++;
                 joint_index++;
             } else {
@@ -265,7 +266,7 @@ void TDC_merger::merge(uint64_t max_fit_points) {
     free(matched_second_timestamps);
 }
 
-uint16_t TDC_merger::getChannel(uint64_t index) const {
+uint16_t TDC_merger::get_channel(uint64_t index) const {
     return (uint16_t) (this->channel[index] + 1);
 }
 

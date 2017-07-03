@@ -111,15 +111,15 @@ public:
      * @param clock The channel that is going to be used as clock.
      * @param box_number The number of the box the data come from.
      */
-    void loadFromFile(const char *data_file_path,
-                      uint16_t clock,
-                      uint16_t box_number);
+    void load_from_file(const char *data_file_path,
+                        uint16_t clock,
+                        uint16_t box_number);
 
     /**
      * @param index The index of the event
      * @return The timestamp of the event
      */
-    uint64_t getTimestamp(uint64_t index) const;
+    uint64_t get_timestamp(uint64_t index) const;
 
     /**
      * This method takes into account the box number, it works as follows:
@@ -131,26 +131,26 @@ public:
      * @param index The index of the event
      * @return The channel of the event
      */
-    virtual uint16_t getChannel(uint64_t index) const;
+    virtual uint16_t get_channel(uint64_t index) const;
 
     /**
      * @return The number of the box
      */
-    uint16_t getBoxNumber() const {
+    uint16_t get_box_number() const {
         return box_number;
     }
 
     /**
      * @return The number of events in the object
      */
-    uint64_t getSize() const {
+    uint64_t get_size() const {
         return size;
     };
 
     /**
      * @return The channel of the clock
      */
-    uint16_t getClockChannel() const {
+    uint16_t get_clock_channel() const {
         return clock;
     }
 
@@ -160,25 +160,25 @@ public:
      *      Must be already allocated.
      * @return The number of clock events.
      */
-    uint64_t getClocks(uint64_t *destination_array);
+    uint64_t get_clock_array(uint64_t *destination_array);
 
     /**
      * @param n The number of clock event to search for.
      * @return The index of the nth clock event.
      */
-    uint64_t findNthClock(uint64_t n);
+    uint64_t find_nth_clock(uint64_t n);
 
     /**
      * Check if the event in position #index is a clock.
      * @param index The index of the event
      * @return True if the event is a clock, False otherwise.
      */
-    bool isClock(uint64_t index) const;
+    bool is_clock(uint64_t index) const;
 
     /**
      * @return The number of channels in the object.
      */
-    uint16_t getChannelsNumber() const {
+    uint16_t get_channels_number() const {
         return num_channels;
     }
 
@@ -192,22 +192,22 @@ public:
      * @param coincidence_window The maximum time distance *in bins* in which two
      *      or more events are considered coincident.
      */
-    void findNfoldCoincidences(uint16_t n,
-                               const char *singles_file_name,
-                               const char *coincidences_file_name,
-                               uint64_t coincidence_window);
+    void find_n_fold_coincidences(uint16_t n,
+                                  const char *singles_file_name,
+                                  const char *coincidences_file_name,
+                                  uint64_t coincidence_window);
 
     /**
      * Print to file the timestamps and relative channels in the object.
      * @param output_file_path The name of the output file.
      */
-    void printDataToFile(const char *output_file_path);
+    void print_data_to_file(const char *output_file_path);
 
     /**
      * Set an offset per channel and reorder data if necessary.
      * @param offset_file_path The name of the offset file.
      */
-    void setChannelOffset(const char *offset_file_path);
+    void set_channel_offset(const char *offset_file_path);
 
 private:
     /**
@@ -215,7 +215,7 @@ private:
      * @param data_file A pointer to an open file.
      * @return The number of events in the file.
      */
-    uint64_t getFileSize(FILE *data_file);
+    uint64_t get_file_size(FILE *data_file);
 
     /**
      * This method finds the index at which one second was passed since the first event.
@@ -223,7 +223,7 @@ private:
      *
      * @return The index corresponding to one second of real time.
      */
-    uint64_t findOneSecondIndex();
+    uint64_t find_one_second_index();
 };
 
 #endif //TDC_DATA_H

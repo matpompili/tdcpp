@@ -49,7 +49,7 @@ public:
 
     virtual ~TDC_merger();
 
-    uint16_t getChannel(uint64_t index) const override;
+    uint16_t get_channel(uint64_t index) const override;
 /*
  * The following methods are private, this means that they can be called only by the object itself.
  * Documentation about them is available in TDC_merger.cpp
