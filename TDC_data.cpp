@@ -273,7 +273,7 @@ void TDC_data::print_data_to_file(const char *output_file_path) {
 }
 
 void TDC_data::set_channel_offset(const char *offset_file_path) {
-    /// We are using the Insertion Sort algorithm, which is O(n^2) in the worst case, but is
+    /// We are using the Insertion Sort algorithm, which is O(n^2) in the worse-case, but is
     /// roughly O(n) if the array is nearly sorted (which is our case). A visual comparison of
     /// sorting algorithm can be found at https://www.toptal.com/developers/sorting-algorithms
 
