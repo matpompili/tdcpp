@@ -136,17 +136,23 @@ public:
     /**
      * @return The number of the box
      */
-    uint16_t getBoxNumber() const;
+    uint16_t getBoxNumber() const {
+        return box_number;
+    }
 
     /**
      * @return The number of events in the object
      */
-    uint64_t getSize() const;
+    uint64_t getSize() const {
+        return size;
+    };
 
     /**
      * @return The channel of the clock
      */
-    uint16_t getClockChannel() const;
+    uint16_t getClockChannel() const {
+        return clock;
+    }
 
     /**
      * A method to retrieve the clock events and their number.
@@ -172,7 +178,9 @@ public:
     /**
      * @return The number of channels in the object.
      */
-    uint16_t getChannelsNumber() const;
+    uint16_t getChannelsNumber() const {
+        return num_channels;
+    }
 
     /**
      * @brief This method finds n-fold coincidences in the object.
@@ -181,7 +189,8 @@ public:
      *      If more, or less, than n events occur in the coincidence_window, the coincidence will be ignored.
      * @param singles_file_name The name of the file in which the single events count will be saved.
      * @param coincidences_file_name The name of the file in which the coincidence events will be saved.
-     * @param coincidence_window The maximum time distance *in bins* in which two or more events are considered coincident.
+     * @param coincidence_window The maximum time distance *in bins* in which two
+     *      or more events are considered coincident.
      */
     void findNfoldCoincidences(uint16_t n,
                                const char *singles_file_name,

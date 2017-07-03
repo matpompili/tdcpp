@@ -106,14 +106,6 @@ uint16_t TDC_data::getChannel(uint64_t index) const {
     return (uint16_t) (*(this->channel + index) + (this->box_number - 1) * 8 + 1);
 }
 
-uint64_t TDC_data::getSize() const {
-    return this->size;
-}
-
-uint16_t TDC_data::getBoxNumber() const {
-    return this->box_number;
-}
-
 uint64_t TDC_data::findOneSecondIndex() {
     uint64_t start_index = 0;
     uint64_t end_index = this->size - 1;
@@ -162,13 +154,6 @@ bool TDC_data::isClock(uint64_t index) const {
     return (this->channel[index] + 1 == this->clock);
 }
 
-uint16_t TDC_data::getClockChannel() const {
-    return this->clock;
-}
-
-uint16_t TDC_data::getChannelsNumber() const {
-    return num_channels;
-}
 
 void TDC_data::findNfoldCoincidences(uint16_t n,
                                      const char *singles_file_name,

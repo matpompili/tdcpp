@@ -40,11 +40,11 @@ int main() {
     delete first_plus_second;
     delete third_file;
 
-    all_together->printDataToFile("timestamp_without_offset.txt");
+    //all_together->printDataToFile("timestamp_without_offset.txt");
 
     all_together->setChannelOffset("offset.conf");
-    //all_together->findNfoldCoincidences(2, "singles.temp", "coincidences.temp", 25);
-    all_together->printDataToFile("timestamp_with_offset.txt");
+    all_together->findNfoldCoincidences(2, "singles.temp", "coincidences.temp", 25);
+    //all_together->printDataToFile("timestamp_with_offset.txt");
 
     delete all_together;
 
