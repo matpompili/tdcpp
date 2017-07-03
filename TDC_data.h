@@ -204,10 +204,21 @@ public:
     void print_data_to_file(const char *output_file_path);
 
     /**
-     * Set an offset per channel and reorder data if necessary.
+     * @brief Set an offset per channel and reorder data if necessary.
+     * We are using the Insertion Sort algorithm, which is O(n^2) in the worse-case, but is
+     * roughly O(n) if the array is nearly sorted (which is our case). A visual comparison of
+     * sorting algorithm can be found at https://www.toptal.com/developers/sorting-algorithms
      * @param offset_file_path The name of the offset file.
      */
     void set_channel_offset(const char *offset_file_path);
+
+    /**
+     * Copy the timestamp array to #dest_array
+     * @param dest_array Destination array. If this is not big enough segmentation fault will occur.
+     * @param start_index The index from which the copy will start.
+     * @param n_events The number of events to copy, starting from #start_index/
+     */
+    void copy_timestamp_array(uint64_t* dest_array, uint64_t start_index, uint64_t n_events);
 
 private:
     /**

@@ -9,7 +9,7 @@
 #include "TDC_data.h"
 #include "TDC_merger.h"
 
-#define TIME_PROGRAM
+//#define TIME_PROGRAM
 #ifdef TIME_PROGRAM
 
 #include <ctime>
@@ -45,7 +45,7 @@ int main() {
     //all_together->print_data_to_file("timestamp_without_offset.txt");
 
     all_together->set_channel_offset("offset.conf");
-    all_together->find_n_fold_coincidences(2, "singles.temp", "coincidences.temp", 25);
+    all_together->find_n_fold_coincidences(2, "singles.temp", "coincidences2.temp", 25);
     //all_together->print_data_to_file("timestamp_with_offset.txt");
 
     delete all_together;
