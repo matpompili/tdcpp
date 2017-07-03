@@ -4,7 +4,6 @@
  * */
 
 #include <iostream>
-#include <cstring>
 #include "TDC_merger.h"
 
 TDC_merger::TDC_merger(TDC_data *first_data, TDC_data *second_data) {
@@ -172,6 +171,8 @@ void TDC_merger::merge(uint64_t max_fit_points) {
     if (common_number_clocks > max_fit_points) common_number_clocks = max_fit_points;
 
     /// Perform a linear regression, without intercept.
+    /// We will be using the power series 1/(1-x) ~ 1 + x + O(x^2) to correct the derive, since x
+    /// is expected to be O(1E-6) or less.
     double x_times_y = 0., x_squared = 0.;
     for (uint64_t i = 1; i < common_number_clocks; ++i) {
         x_times_y +=
@@ -179,7 +180,7 @@ void TDC_merger::merge(uint64_t max_fit_points) {
         x_squared +=
                 (double) this->first_clocks[matching_clock_first + i] * this->first_clocks[matching_clock_first + i];
     }
-    double correction_slope = x_times_y / x_squared;
+    double correction_factor =  1. - x_times_y / x_squared;
 
     /// Allocate space for the matched arrays
     uint64_t *matched_first_timestamps =
@@ -188,9 +189,6 @@ void TDC_merger::merge(uint64_t max_fit_points) {
             (uint64_t *) malloc((this->second_data->get_size() - starting_index_second) * sizeof(uint64_t));
 
 
-    this->first_data->copy_timestamp_array(matched_first_timestamps,
-                                           starting_index_first, this->first_data->get_size() - starting_index_first);
-
     /// Shift the timestamps of the first (before we shifted only the clock)
     for (uint64_t i = 0; i < this->first_data->get_size() - starting_index_first; ++i) {
         matched_first_timestamps[i] =
@@ -198,34 +196,38 @@ void TDC_merger::merge(uint64_t max_fit_points) {
                 this->first_data->get_timestamp(starting_index_first);
     }
 
-//    uint64_t foo = this->first_data->get_timestamp(starting_index_first);
-//
-//    auto shift_func = [&] (uint64_t ts) {
-//        return ts - foo;
-//    };
-//
-//    u64_vectorize_function(matched_first_timestamps, (this->first_data->get_size() - starting_index_first),  shift_func);
-//
-//    this->second_data->copy_timestamp_array(matched_second_timestamps,
-//                                           starting_index_second, this->second_data->get_size() - starting_index_second);
+/*    this->first_data->copy_timestamp_array(matched_first_timestamps,
+                                           starting_index_first, this->first_data->get_size() - starting_index_first);
+
+    uint64_t foo = this->first_data->get_timestamp(starting_index_first);
+
+    auto shift_func = [&] (uint64_t ts) {
+        return ts - foo;
+    };
+
+    u64_vectorize_function(matched_first_timestamps, (this->first_data->get_size() - starting_index_first),  shift_func);*/
+
 
     /// Shift the timestamps of the second and correct for the time drift.
     for (uint64_t i = 0; i < this->second_data->get_size() - starting_index_second; ++i) {
         matched_second_timestamps[i] =
                 this->second_data->get_timestamp(i + starting_index_second) -
                 this->second_data->get_timestamp(starting_index_second);
-        matched_second_timestamps[i] = (uint64_t) truncl((long double) matched_second_timestamps[i] / correction_slope);
+        matched_second_timestamps[i] += (uint64_t) trunc((double) matched_second_timestamps[i] * correction_factor);
     }
 
-//    foo = this->second_data->get_timestamp(starting_index_second);
-//
-//    auto shift_and_drift_func = [foo, correction_slope] (uint64_t ts){
-//        ts = ts - foo;
-//        return (uint64_t) llround((double) ts / correction_slope);
-//    };
-//
-//    u64_vectorize_function(matched_second_timestamps,
-//                           (this->second_data->get_size() - starting_index_second), shift_and_drift_func);
+/*    this->second_data->copy_timestamp_array(matched_second_timestamps,
+                                            starting_index_second, this->second_data->get_size() - starting_index_second);
+
+    foo = this->second_data->get_timestamp(starting_index_second);
+
+    auto shift_and_drift_func = [&] (uint64_t ts){
+        ts = ts - foo;
+        return  ts + (uint64_t) trunc((double) ts * correction_factor);
+    };
+
+    u64_vectorize_function(matched_second_timestamps,
+                           (this->second_data->get_size() - starting_index_second), shift_and_drift_func);*/
 
     this->size = this->first_data->get_size() + this->second_data->get_size()
                  - starting_index_first - starting_index_second - number_matching_clock_second;

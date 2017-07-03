@@ -8,7 +8,7 @@
 #include <cstring>
 #include "TDC_utils.h"
 
-#define NUM_THREADS 32
+#define NUM_THREADS 8
 
 void log_error_and_exit(const char *error_message) {
     std::cerr << "Fatal error: " << error_message << std::endl;
@@ -58,10 +58,9 @@ void u64_apply_function(uint64_t *array,
                         uint64_t start_index, uint64_t end_index, std::function<uint64_t(uint64_t)> func) {
 
     uint64_t *local_array = (uint64_t *) malloc((end_index - start_index) * sizeof(uint64_t));
-    memcpy(local_array, array + start_index, (end_index - start_index) * sizeof(uint64_t));
 
     for(uint64_t i = 0; i < end_index - start_index;  ++i) {
-        local_array[i] = func(local_array[i]);
+        local_array[i] = func(array[i + start_index]);
     }
 
     memcpy(array + start_index, local_array, (end_index - start_index) * sizeof(uint64_t));

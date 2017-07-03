@@ -95,6 +95,8 @@ uint64_t TDC_data::get_file_size(FILE *data_file) {
         /// The pointer is null, throw an error and exit.
         std::string error_string("Inside get_file_size the file pointer is null.");
         log_error_and_exit(error_string.c_str());
+        /// This will not be returned. Just to make the compiler happy.
+        return 0;
     }
 }
 
@@ -218,10 +220,10 @@ void TDC_data::find_n_fold_coincidences(uint16_t n,
             if (is_coincidence_still_good && (coincidence_channel_index == n)) {
 
                 /// Sort the #coincidence_channel array
-                int16_t j;
-                for (uint16_t i = 1; i < n; ++i) {
-                    uint16_t channel_value = coincidence_channel[i];
-                    j = i - 1;
+                int32_t j;
+                for (uint16_t k = 1; k < n; ++k) {
+                    uint16_t channel_value = coincidence_channel[k];
+                    j = k - 1;
 
                     while ((j >= 0) && (coincidence_channel[j] > channel_value)) {
                         coincidence_channel[j+1] = coincidence_channel[j];
@@ -232,7 +234,7 @@ void TDC_data::find_n_fold_coincidences(uint16_t n,
                 }
 
                 coincidence_key = "";
-                for (uint16_t j = 0; j < n; ++j) {
+                for (j = 0; j < n; ++j) {
                     if (coincidence_channel[j] + 1 < 10) {
                         coincidence_key.append("0");
                     }
@@ -257,25 +259,32 @@ void TDC_data::find_n_fold_coincidences(uint16_t n,
     }
 
     /// Save the singles
-    FILE *singles_file = fopen(singles_file_name, "w");
+    char buffer[10000];
+    uint64_t buffer_cursor = 0;
 
     for (uint64_t channel_index = 0; channel_index < this->num_channels; ++channel_index) {
         if (singles[channel_index] != 0) {
-            fprintf(singles_file, "%" PRIu64 "\t%" PRIu64 "\n", channel_index + 1, singles[channel_index]);
+            buffer_cursor +=
+                    sprintf(buffer + buffer_cursor, "%" PRIu64 "\t%" PRIu64 "\n", channel_index + 1, singles[channel_index]);
         }
     }
-
     free(singles);
+
+    FILE *singles_file = fopen(singles_file_name, "w");
+    fprintf(singles_file, "%s", buffer);
     fclose(singles_file);
 
     /// Save the coincidences
-    FILE *coincidences_file = fopen(coincidences_file_name, "w");
+    buffer_cursor = 0;
 
     for (auto const &map_entry : coincidences_map) {
-        fprintf(coincidences_file, "%s\t%" PRIu64 "\n", map_entry.first.c_str(), map_entry.second);
+        buffer_cursor +=
+                sprintf(buffer + buffer_cursor, "%s\t%" PRIu64 "\n", map_entry.first.c_str(), map_entry.second);
     }
-
     free(coincidence_channel);
+
+    FILE *coincidences_file = fopen(coincidences_file_name, "w");
+    fprintf(coincidences_file, "%s", buffer);
     fclose(coincidences_file);
 }
 
