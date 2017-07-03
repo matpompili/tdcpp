@@ -54,41 +54,41 @@ protected:
     /**
      * A pointer to the timestamp array.
      * */
-    uint64_t    *timestamp;
+    uint64_t *timestamp;
 
     /**
      * A pointer to the channel array.
      * */
-    uint16_t    *channel;
+    uint16_t *channel;
 
     /**
      * A pointer to the offset array.
      * */
-    int16_t     *offset;
+    int16_t *offset;
 
     /**
      * @brief The number of events in the object.
      *
      * It is also the size of the arrays pointed by #timestamp and #channel.
      * */
-    uint64_t    size;
+    uint64_t size;
 
     /**
      * The number of channels in the object.
      * */
-    uint16_t    num_channels;
+    uint16_t num_channels;
 
     /**
      * The channel that is used as a clock.
      * */
-    uint16_t    clock;
+    uint16_t clock;
 
     /**
      * @brief The number of the box from which the data comes from.
      *
      * This is used to give the correct channel number, check the getChannel() method for further information.
      * */
-    uint16_t    box_number;
+    uint16_t box_number;
 
 public:
     /**

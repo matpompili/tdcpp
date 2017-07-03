@@ -6,15 +6,6 @@
 #include <iostream>
 #include "TDC_merger.h"
 
-
-/*
- * This is the default constructor.
- *
- * Arguments:
- *  - *first_data, *second_data:      TDC_data pointer
- *      the two TDC_data objects that are going to be merged.
- *
- * */
 TDC_merger::TDC_merger(TDC_data *first_data, TDC_data *second_data) {
 
 //    Save a reference to the object
@@ -29,13 +20,10 @@ TDC_merger::TDC_merger(TDC_data *first_data, TDC_data *second_data) {
     this->offset = (int16_t *) calloc(this->num_channels, sizeof(int16_t));
 
 //    Find the matching index between the two objects. Also find which object is delayed.
-    this->findMatch(200, 20);
+    this->find_match(200, 20);
     this->merge(100);
 }
 
-/*
- * This is the default destructor. It frees the arrays and deletes the references.
- * */
 TDC_merger::~TDC_merger() {
     this->first_data = nullptr;
     this->second_data = nullptr;
@@ -44,17 +32,7 @@ TDC_merger::~TDC_merger() {
     free(this->second_clocks);
 }
 
-/*
- * This method finds the first common clock event in the two TDC_data objects.
- * It consider a `time_depth` 
- * Arguments:
- *  - max_shift:    u64
- *      Max offset to consider. This depend on both the rate of the clock and the starting delay of the boxes.
- *
- *  - time_depth:   u64
- *      Size of the timestamps subarrays to confront.
- * */
-void TDC_merger::findMatch(uint64_t max_shift, uint64_t time_depth) {
+void TDC_merger::find_match(uint64_t max_shift, uint64_t time_depth) {
 //    Allocate the arrays that will contains the clock events of the two objects.
     this->first_clocks = (uint64_t *) malloc(this->first_data->get_size() * sizeof(uint64_t));
     this->second_clocks = (uint64_t *) malloc(this->second_data->get_size() * sizeof(uint64_t));
@@ -112,7 +90,7 @@ void TDC_merger::findMatch(uint64_t max_shift, uint64_t time_depth) {
     }
 
 //    Check if the match is good
-    if (customRatio(min_distance_backward, min_distance_forward) < TDC_MATCH_TRESHOLD) {
+    if (customRatio(min_distance_backward, min_distance_forward) < TDC_MATCH_THRESHOLD) {
         char error_str[256];
         sprintf(error_str,
                 "Failed to find a match. Forward: %" PRIu64 ". Backward: %" PRIu64 ".",
@@ -197,7 +175,7 @@ void TDC_merger::merge(uint64_t max_fit_points) {
     for (uint64_t i = 0; i < this->first_data->get_size() - starting_index_first; ++i) {
         matched_first_timestamps[i] =
                 this->first_data->get_timestamp(i + starting_index_first) -
-                        this->first_data->get_timestamp(starting_index_first);
+                this->first_data->get_timestamp(starting_index_first);
     }
 
 /*    for (uint64_t i = starting_index_second; i < this->second_data->get_size(); ++i) {
@@ -209,7 +187,7 @@ void TDC_merger::merge(uint64_t max_fit_points) {
     for (uint64_t i = 0; i < this->second_data->get_size() - starting_index_second; ++i) {
         matched_second_timestamps[i] =
                 this->second_data->get_timestamp(i + starting_index_second) -
-                        this->second_data->get_timestamp(starting_index_second);
+                this->second_data->get_timestamp(starting_index_second);
         matched_second_timestamps[i] = (uint64_t) llround((double) matched_second_timestamps[i] / correction_slope);
     }
 
@@ -265,9 +243,3 @@ void TDC_merger::merge(uint64_t max_fit_points) {
     free(matched_first_timestamps);
     free(matched_second_timestamps);
 }
-
-uint16_t TDC_merger::get_channel(uint64_t index) const {
-    return (uint16_t) (this->channel[index] + 1);
-}
-
-

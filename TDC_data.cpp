@@ -26,11 +26,11 @@ void TDC_data::load_from_file(const char *data_file_path, uint16_t clock, uint16
         if (this->size > 0) {
             /// And it is not empty
 
-            char* read_buffer = (char*) malloc(this->size * TDC_RECORD_SIZE);
+            char *read_buffer = (char *) malloc(this->size * TDC_RECORD_SIZE);
             this->timestamp = (uint64_t *) malloc(this->size * sizeof(uint64_t));
             this->channel = (uint16_t *) malloc(this->size * sizeof(uint32_t));
 
-            if( read_buffer == NULL || this->timestamp == NULL || this->channel == NULL) {
+            if (read_buffer == NULL || this->timestamp == NULL || this->channel == NULL) {
                 logErrorAndExit("Could not allocate the memory to read a file.");
             }
 
@@ -44,8 +44,8 @@ void TDC_data::load_from_file(const char *data_file_path, uint16_t clock, uint16
             /// Close the file, it is not longer needed
 
             for (int i = 0; i < this->size; i++) {
-                memcpy(this->timestamp+i, read_buffer + i*TDC_RECORD_SIZE, TDC_TIMESTAMP_SIZE);
-                memcpy(this->channel + i, read_buffer + i*TDC_RECORD_SIZE + TDC_TIMESTAMP_SIZE, TDC_CHANNEL_SIZE);
+                memcpy(this->timestamp + i, read_buffer + i * TDC_RECORD_SIZE, TDC_TIMESTAMP_SIZE);
+                memcpy(this->channel + i, read_buffer + i * TDC_RECORD_SIZE + TDC_TIMESTAMP_SIZE, TDC_CHANNEL_SIZE);
             }
 
             free(read_buffer);
@@ -55,7 +55,7 @@ void TDC_data::load_from_file(const char *data_file_path, uint16_t clock, uint16
         }
 
     } else {
-        std::string error_string ("File not found, ");
+        std::string error_string("File not found, ");
         error_string.append(data_file_path);
         logErrorAndExit(error_string.c_str());
         /// The file was not found. Throw an error and exit.
@@ -92,7 +92,7 @@ uint64_t TDC_data::get_file_size(FILE *data_file) {
         }
         return (uint64_t) file_size;
     } else {
-        std::string error_string ("Inside get_file_size the file pointer is null.");
+        std::string error_string("Inside get_file_size the file pointer is null.");
         logErrorAndExit(error_string.c_str());
         /// The pointer is null, throw an error and exit.
     }
@@ -258,13 +258,13 @@ void TDC_data::find_n_fold_coincidences(uint16_t n,
 }
 
 void TDC_data::print_data_to_file(const char *output_file_path) {
-    FILE* output_file = fopen(output_file_path, "w");
+    FILE *output_file = fopen(output_file_path, "w");
     if (output_file) {
         for (uint64_t i = 0; i < this->size; ++i) {
             fprintf(output_file, "%" PRIu64 " %" PRIu16 "\n", this->timestamp[i], this->get_channel(i));
         }
     } else {
-        std::string error_string ("Can't write to  ");
+        std::string error_string("Can't write to  ");
         error_string.append(output_file_path);
         logErrorAndExit(error_string.c_str());
     }
@@ -277,7 +277,7 @@ void TDC_data::set_channel_offset(const char *offset_file_path) {
     /// roughly O(n) if the array is nearly sorted (which is our case). A visual comparison of
     /// sorting algorithm can be found at https://www.toptal.com/developers/sorting-algorithms
 
-    FILE* offset_file = fopen(offset_file_path, "r");
+    FILE *offset_file = fopen(offset_file_path, "r");
     int16_t max_offset = 0;
 
     if (offset_file) {
@@ -300,17 +300,17 @@ void TDC_data::set_channel_offset(const char *offset_file_path) {
             sorting_timestamp = this->timestamp[i];
             sorting_channel = this->channel[i];
             j = i - 1;
-            while ( (j >= 0) && (this->timestamp[j] > sorting_timestamp)) {
-                this->timestamp[j+1] = this->timestamp[j];
-                this->channel[j+1] = this->channel[j];
+            while ((j >= 0) && (this->timestamp[j] > sorting_timestamp)) {
+                this->timestamp[j + 1] = this->timestamp[j];
+                this->channel[j + 1] = this->channel[j];
                 j = j - 1;
-                this->timestamp[j+1] = sorting_timestamp;
-                this->channel[j+1] = sorting_channel;
+                this->timestamp[j + 1] = sorting_timestamp;
+                this->channel[j + 1] = sorting_channel;
             }
         }
 
     } else {
-        std::string error_string ("Can't read offset file  ");
+        std::string error_string("Can't read offset file  ");
         error_string.append(offset_file_path);
         logErrorAndExit(error_string.c_str());
     }

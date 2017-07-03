@@ -23,9 +23,9 @@ int main() {
     TDC_data *second_file = new TDC_data();
     TDC_data *third_file = new TDC_data();
 
-    std::thread first_thread(&TDC_data::loadFromFile, first_file, "timestamps1.txt", 8, 1);
-    std::thread second_thread(&TDC_data::loadFromFile, second_file, "timestamps2.txt", 8, 2);
-    std::thread third_thread(&TDC_data::loadFromFile, third_file, "timestamps3.txt", 8, 3);
+    std::thread first_thread(&TDC_data::load_from_file, first_file, "timestamps1.txt", 8, 1);
+    std::thread second_thread(&TDC_data::load_from_file, second_file, "timestamps2.txt", 8, 2);
+    std::thread third_thread(&TDC_data::load_from_file, third_file, "timestamps3.txt", 8, 3);
 
     first_thread.join();
     second_thread.join();
@@ -40,7 +40,7 @@ int main() {
     delete first_plus_second;
     delete third_file;
 
-    all_together->printDataToFile("all_timestamps_before.txt");
+    all_together->print_data_to_file("all_timestamps_before.txt");
 
     delete all_together;
 
