@@ -191,11 +191,13 @@ public:
      * @param coincidences_file_name The name of the file in which the coincidence events will be saved.
      * @param coincidence_window The maximum time distance *in bins* in which two
      *      or more events are considered coincident.
+     * @param legacyFormat Use and alternative printing standard, for compatibility.
      */
     void find_n_fold_coincidences(uint16_t n,
                                   const char *singles_file_name,
                                   const char *coincidences_file_name,
-                                  uint64_t coincidence_window);
+                                  uint64_t coincidence_window,
+                                  bool legacyFormat = false);
 
     /**
      * Print to file the timestamps and relative channels in the object.

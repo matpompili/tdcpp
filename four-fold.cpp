@@ -9,7 +9,7 @@
 #include "TDC_data.h"
 #include "TDC_merger.h"
 
-#define TIME_PROGRAM
+//#define TIME_PROGRAM
 #ifdef TIME_PROGRAM
     #include <ctime>
 #endif
@@ -39,7 +39,7 @@ int main() {
     delete first_plus_second;
     delete third_file;
 
-    all_together->find_n_fold_coincidences(4, "singles.temp", "coincidences.temp", 160);
+    all_together->find_n_fold_coincidences(4, "singles.temp", "coincidences.temp", 100, true);
 
     delete all_together;
 

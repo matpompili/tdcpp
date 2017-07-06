@@ -161,7 +161,8 @@ bool TDC_data::is_clock(uint64_t index) const {
 void TDC_data::find_n_fold_coincidences(uint16_t n,
                                         const char *singles_file_name,
                                         const char *coincidences_file_name,
-                                        uint64_t coincidence_window) {
+                                        uint64_t coincidence_window,
+                                        bool legacyFormat) {
     /// Allocate and set to zero the array for single events.
     uint64_t *singles = (uint64_t *) calloc(this->num_channels, sizeof(uint64_t));
 
@@ -234,15 +235,28 @@ void TDC_data::find_n_fold_coincidences(uint16_t n,
                 }
 
                 coincidence_key = "";
-                for (j = 0; j < n; ++j) {
-                    if (coincidence_channel[j] + 1 < 10) {
-                        coincidence_key.append("0");
+
+                if (!legacyFormat) {
+
+                    for (j = 0; j < n; ++j) {
+                        if (coincidence_channel[j] + 1 < 10) {
+                            coincidence_key.append("0");
+                        }
+                        coincidence_key.append(std::to_string(coincidence_channel[j] + 1));
+                        coincidence_key.append("_");
                     }
-                    coincidence_key.append(std::to_string(coincidence_channel[j] + 1));
-                    coincidence_key.append("_");
+                    coincidence_key.pop_back();
+                    coincidences_map[coincidence_key] += 1;
+                } else {
+                    for (j = 0; j < n; ++j) {
+                        coincidence_key.append(std::to_string(coincidence_channel[j] + 1));
+                        coincidence_key.append(" ");
+                    }
+                    coincidence_key.append("%");
+                    coincidences_map[coincidence_key] += 1;
                 }
-                coincidence_key.pop_back();
-                coincidences_map[coincidence_key] += 1;
+
+
             }
 
             /// Start a new window
@@ -278,8 +292,14 @@ void TDC_data::find_n_fold_coincidences(uint16_t n,
     buffer_cursor = 0;
 
     for (auto const &map_entry : coincidences_map) {
-        buffer_cursor +=
-                sprintf(buffer + buffer_cursor, "%s\t%" PRIu64 "\n", map_entry.first.c_str(), map_entry.second);
+        if (!legacyFormat) {
+            buffer_cursor +=
+                    sprintf(buffer + buffer_cursor, "%s\t%" PRIu64 "\n", map_entry.first.c_str(), map_entry.second);
+        } else {
+            buffer_cursor +=
+                    sprintf(buffer + buffer_cursor, "%s\n", map_entry.first.c_str());
+        }
+
     }
     free(coincidence_channel);
 
