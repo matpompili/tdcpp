@@ -5,7 +5,6 @@
 
 #include <iostream>
 #include "TDCpp/TDCpp_data.h"
-#include "TDCpp/TDCpp_merger.h"
 
 int main() {
     TDCpp_data *data = new TDCpp_data();
