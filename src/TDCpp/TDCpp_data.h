@@ -1,13 +1,3 @@
-/**
- * @class TDC_data
- *
- * @brief This class is used to read and use timestamps data from ID800-TDC.
- *
- * @author Matteo Pompili (matpompili@ gmail.com)
- *
- * Created on: Apr 22 2017
- */
-
 #ifndef TDCPP_DATA_H
 #define TDCPP_DATA_H
 
@@ -44,9 +34,11 @@
 #define TDCPP_ONE_SEC_BINS 12345679012
 
 /**
- * This class is used to read and use timestamps data from ID800-TDC.
+ * @brief This class is used to read and use timestamps data from ID800-TDC.
  *
  * @author Matteo Pompili (matpompili at gmail com)
+ *
+ * Created on: Apr 22 2017
  */
 class TDCpp_data {
 
@@ -169,7 +161,7 @@ public:
     uint64_t find_nth_clock(uint64_t n);
 
     /**
-     * Check if the event in position #index is a clock.
+     * Check if the event in position index is a clock.
      * @param index The index of the event
      * @return True if the event is a clock, False otherwise.
      */
@@ -207,6 +199,7 @@ public:
 
     /**
      * @brief Set an offset per channel and reorder data if necessary.
+     *
      * We are using the Insertion Sort algorithm, which is O(n^2) in the worse-case, but is
      * roughly O(n) if the array is nearly sorted (which is our case). A visual comparison of
      * sorting algorithm can be found at https://www.toptal.com/developers/sorting-algorithms
@@ -215,10 +208,10 @@ public:
     void set_channel_offset(const char *offset_file_path);
 
     /**
-     * Copy the timestamp array to #dest_array
+     * Copy the timestamp array to dest_array
      * @param dest_array Destination array. If this is not big enough segmentation fault will occur.
      * @param start_index The index from which the copy will start.
-     * @param n_events The number of events to copy, starting from #start_index/
+     * @param n_events The number of events to copy, starting from start_index
      */
     void copy_timestamp_array(uint64_t* dest_array, uint64_t start_index, uint64_t n_events);
 

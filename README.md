@@ -1,2 +1,2 @@
 # tdcpp
-A C++ library to handle photon counting experiments
+A C++ library to handle photon counting experiments.

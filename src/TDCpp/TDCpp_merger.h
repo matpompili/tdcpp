@@ -1,15 +1,3 @@
-/**
- * \class TDC_merger
- *
- * \brief This class is used to merge two TDC_data objects into one.
- * It uses a clock channel to match the two objects, and corrects the time drift with a linear fit.
- *
- * \author $Author: Matteo Pompili$
- *
- * Contact: matpompili\@ gmail.com
- *
- * Created on: Apr 24 2017
- */
 #ifndef TDCPP_MERGER_H
 #define TDCPP_MERGER_H
 
@@ -17,14 +5,19 @@
 #include <cmath>
 
 /**
- * A threshold to accept or reject the matching of two TDC_data objects.
+ * A threshold to accept or reject the matching of two TDCpp_data objects.
  * This is the ratio between the cumulative sums of time_deltas.
  */
 #define TDCPP_MATCH_THRESHOLD 1000
 
 /**
- * \brief This class is used to merge two TDC_data objects into one.
+ * \brief This class is used to merge two TDCpp_data objects into one.
+ *
  * It uses a clock channel to match the two objects, and corrects the time derive with a linear fit.
+ *
+ * @author Matteo Pompili (matpompili at gmail com)
+ *
+ * Created on: Apr 24 2017
  */
 class TDCpp_merger : public TDCpp_data {
 protected:
@@ -71,8 +64,8 @@ protected:
 public:
     /**
      * This is the default constructor.
-     * @param first_data The first of the two TDC_data objects that are going to be merged.
-     * @param second_data The second of the two TDC_data objects that are going to be merged.
+     * @param first_data The first of the two TDCpp_data objects that are going to be merged.
+     * @param second_data The second of the two TDCpp_data objects that are going to be merged.
      */
     TDCpp_merger(TDCpp_data *first_data, TDCpp_data *second_data);
 
@@ -83,7 +76,7 @@ public:
 
 private:
     /**
-     * Find the first common clock event in the two TDC_data objects.
+     * Find the first common clock event in the two TDCpp_data objects.
      * @param max_shift Max offset to consider.
      * This depend on both the rate of the clock and the starting delay of the boxes.
      * @param time_depth Size of the timestamps subarrays to confront.

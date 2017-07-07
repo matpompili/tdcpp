@@ -1,8 +1,3 @@
-/*
- * Created by Matteo Pompili on 4/22/17.
- * MSc. Physics Student @ La Sapienza
- * */
-
 #include <iostream>
 #include <cstring>
 #include "TDCpp_data.h"
@@ -16,14 +11,14 @@ TDCpp_data::~TDCpp_data() {
 }
 
 void TDCpp_data::load_from_file(const char *data_file_path, uint16_t clock, uint16_t box_number) {
-    /// Open the file
+    // Open the file
     FILE *data_file = fopen(data_file_path, "rb");
 
-    /// If the file is available
+    // If the file is available
     if (data_file) {
         this->size = get_file_size(data_file);
 
-        /// And it is not empty
+        // And it is not empty
         if (this->size > 0) {
             char *read_buffer = (char *) malloc(this->size * TDCPP_RECORD_SIZE);
             this->timestamp = (uint64_t *) malloc(this->size * sizeof(uint64_t));
@@ -32,16 +27,16 @@ void TDCpp_data::load_from_file(const char *data_file_path, uint16_t clock, uint
             if (read_buffer == NULL || this->timestamp == NULL || this->channel == NULL) {
                 log_error_and_exit("Could not allocate the memory to read a file.");
             }
-            /// Seek until the end if the header
+            // Seek until the end if the header
             fseek(data_file, TDCPP_HEADER_SIZE, SEEK_SET);
 
-            /// Read the whole file in the buffer. Faster than reading record by record.
+            // Read the whole file in the buffer. Faster than reading record by record.
             fread(read_buffer, TDCPP_RECORD_SIZE, this->size, data_file);
 
-            /// Close the file, it is not longer needed
+            // Close the file, it is not longer needed
             fclose(data_file);
 
-            /// Copy the data from the buffer to the arrays
+            // Copy the data from the buffer to the arrays
             for (int i = 0; i < this->size; i++) {
                 memcpy(this->timestamp + i, read_buffer + i * TDCPP_RECORD_SIZE, TDCPP_TIMESTAMP_SIZE);
                 memcpy(this->channel + i, read_buffer + i * TDCPP_RECORD_SIZE + TDCPP_TIMESTAMP_SIZE, TDCPP_CHANNEL_SIZE);
@@ -49,12 +44,12 @@ void TDCpp_data::load_from_file(const char *data_file_path, uint16_t clock, uint
 
             free(read_buffer);
         } else {
-            /// Close the file, it is not longer needed
+            // Close the file, it is not longer needed
             fclose(data_file);
         }
 
     } else {
-        /// The file was not found. Throw an error and exit.
+        // The file was not found. Throw an error and exit.
         std::string error_string("File not found, ");
         error_string.append(data_file_path);
         log_error_and_exit(error_string.c_str());
@@ -71,31 +66,31 @@ void TDCpp_data::load_from_file(const char *data_file_path, uint16_t clock, uint
 
 uint64_t TDCpp_data::get_file_size(FILE *data_file) {
     if (data_file) {
-        /// Get starting position
+        // Get starting position
         const int64_t current_position = ftell(data_file);
 
-        /// Go to EOF and get the position
+        // Go to EOF and get the position
         fseek(data_file, 0, SEEK_END);
 
-        /// Get back to the beginning
+        // Get back to the beginning
         int64_t file_size = ftell(data_file);
 
         fseek(data_file, current_position, SEEK_SET);
-        /// If the file is big enough, i.e. at least the header and one record
+        // If the file is big enough, i.e. at least the header and one record
         if (file_size > TDCPP_HEADER_SIZE + TDCPP_RECORD_SIZE) {
-            /// Get the number of records inside the file
+            // Get the number of records inside the file
             file_size = (file_size - TDCPP_HEADER_SIZE) / TDCPP_RECORD_SIZE;
         } else {
-            /// Otherwise just say no events are available
+            // Otherwise just say no events are available
             file_size = 0;
         }
 
         return (uint64_t) file_size;
     } else {
-        /// The pointer is null, throw an error and exit.
+        // The pointer is null, throw an error and exit.
         std::string error_string("Inside get_file_size the file pointer is null.");
         log_error_and_exit(error_string.c_str());
-        /// This will not be returned. Just to make the compiler happy.
+        // This will not be returned. Just to make the compiler happy.
         return 0;
     }
 }
@@ -112,7 +107,7 @@ uint64_t TDCpp_data::find_one_second_index() {
     uint64_t start_index = 0;
     uint64_t end_index = this->size - 1;
     uint64_t index;
-    /// When start_index and end_index are just one position apart the search is completed.
+    // When start_index and end_index are just one position apart the search is completed.
     while (end_index - start_index > 1) {
         index = (end_index + start_index) / 2;
         if (this->timestamp[index] > TDCPP_ONE_SEC_BINS + this->timestamp[0]) {
@@ -124,7 +119,7 @@ uint64_t TDCpp_data::find_one_second_index() {
             start_index = index;
         }
     }
-    /// We arbitrarily choose to return the lesser of the two.
+    // We arbitrarily choose to return the lesser of the two.
     return start_index;
 
 }
@@ -132,14 +127,14 @@ uint64_t TDCpp_data::find_one_second_index() {
 uint64_t TDCpp_data::get_clock_array(uint64_t *destination_array) {
     uint64_t index = 0;
     for (int i = 0; i < this->size; ++i) {
-        /// If this event is a clock, add it to destination_array
+        // If this event is a clock, add it to destination_array
         if (*(this->channel + i) + 1 == this->clock) {
             *(destination_array + index) = *(this->timestamp + i);
             index++;
         }
     }
 
-    /// Return the number of clock events found
+    // Return the number of clock events found
     return index;
 }
 
@@ -164,14 +159,14 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
                                         uint64_t coincidence_window,
                                         bool legacyFormat) {
 
-    /// Allocate and set to zero the array for single events.
+    // Allocate and set to zero the array for single events.
     uint64_t *singles = (uint64_t *) calloc(this->num_channels, sizeof(uint64_t));
 
-    /// coincidence_channel is a pointer to an n-size array that is needed to keep
-    /// track of the events inside a coincidence-window.
+    // coincidence_channel is a pointer to an n-size array that is needed to keep
+    // track of the events inside a coincidence-window.
     uint16_t *coincidence_channel = (uint16_t *) calloc(n, sizeof(uint16_t));
 
-    /// A map that will hold the count of each possible coincidence.
+    // A map that will hold the count of each possible coincidence.
     std::map<std::string, uint64_t> coincidences_map;
 
     uint16_t coincidence_channel_index = 0;
@@ -185,17 +180,17 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
     bool is_channel_acceptable;
     std::string coincidence_key;
 
-    /// While there are events
+    // While there are events
     for (uint64_t i = 1; i < this->size; ++i) {
 
-        /// Increase the singles count
+        // Increase the singles count
         singles[this->channel[i]] += 1;
 
-        /// If the event is in the coincidence window
+        // If the event is in the coincidence window
         if ((this->timestamp[i] - coincidence_window_start <= coincidence_window)) {
-            /// If there have not been already too much events in this window
+            // If there have not been already too much events in this window
             if (coincidence_channel_index < n) {
-                /// Check if an event with the same channel as already been detected in this window
+                // Check if an event with the same channel as already been detected in this window
                 is_channel_acceptable = true;
                 for (uint16_t j = 0; j < coincidence_channel_index; ++j) {
                     if (this->channel[i] == coincidence_channel[j]) {
@@ -203,25 +198,25 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
                     }
                 }
 
-                /// If the channel is acceptable
+                // If the channel is acceptable
                 if (is_channel_acceptable) {
-                    /// Add it to the coincidence
+                    // Add it to the coincidence
                     coincidence_channel[coincidence_channel_index] = this->channel[i];
                     coincidence_channel_index++;
                 } else {
-                    /// Mark the coincidence as not usable
+                    // Mark the coincidence as not usable
                     is_coincidence_still_good = false;
                 }
             } else {
-                /// Mark the coincidence as not usable, too many events.
+                // Mark the coincidence as not usable, too many events.
                 is_coincidence_still_good = false;
 
             }
         } else {
-            /// Save the last coincidence, if there is one
+            // Save the last coincidence, if there is one
             if (is_coincidence_still_good && (coincidence_channel_index == n)) {
 
-                /// Sort the #coincidence_channel array
+                // Sort the #coincidence_channel array
                 int32_t j;
                 for (uint16_t k = 1; k < n; ++k) {
                     uint16_t channel_value = coincidence_channel[k];
@@ -260,7 +255,7 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
 
             }
 
-            /// Start a new window
+            // Start a new window
             coincidence_window_start = this->timestamp[i];
             coincidence_channel[0] = this->channel[i];
             coincidence_channel_index = 1;
@@ -273,7 +268,7 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
 
     }
 
-    /// Save the singles
+    // Save the singles
     char buffer[10000];
     uint64_t buffer_cursor = 0;
 
@@ -289,11 +284,11 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
     fprintf(singles_file, "%s", buffer);
     fclose(singles_file);
 
-    ///Reset the buffer
+    //Reset the buffer
     buffer_cursor = 0;
     sprintf(buffer, "");
 
-    /// Save the coincidences
+    // Save the coincidences
     for (auto const &map_entry : coincidences_map) {
         if (!legacyFormat) {
             buffer_cursor +=
@@ -331,14 +326,14 @@ void TDCpp_data::set_channel_offset(const char *offset_file_path) {
     int16_t max_offset = 0;
 
     if (offset_file) {
-        /// Find the maximum negative offset
+        // Find the maximum negative offset
         for (uint16_t i = 0; i < this->num_channels; ++i) {
             fscanf(offset_file, "%" PRId16 "", this->offset + i);
             if (max_offset > this->offset[i]) max_offset = this->offset[i];
         }
 
-        /// Shift all the timestamp by their delay plus the maxiumum negative offset.
-        /// We do this to ensure that all the timestamps are positive.
+        // Shift all the timestamp by their delay plus the maxiumum negative offset.
+        // We do this to ensure that all the timestamps are positive.
         this->timestamp[0] += -max_offset + this->offset[this->channel[0]];
 
         uint64_t sorting_timestamp;

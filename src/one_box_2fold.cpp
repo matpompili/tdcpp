@@ -1,8 +1,3 @@
-/*
- * Created by Matteo Pompili on 7/7/17.
- * MSc. Physics Student @ La Sapienza
- * */
-
 #include <iostream>
 #include "TDCpp/TDCpp_data.h"
 

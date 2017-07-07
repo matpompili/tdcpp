@@ -1,8 +1,3 @@
-/*
- * Created by Matteo Pompili on 4/24/17.
- * MSc. Physics Student @ La Sapienza
- * */
-
 #ifndef TDCPP_UTILS_H
 #define TDCPP_UTILS_H
 

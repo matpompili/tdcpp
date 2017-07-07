@@ -1,8 +1,3 @@
-/*
- * Created by Matteo Pompili on 4/22/17.
- * MSc. Physics Student @ La Sapienza
- * */
-
 #include <iostream>
 #include <thread>
 #include <future>
