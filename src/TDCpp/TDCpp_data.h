@@ -8,20 +8,20 @@
  * Created on: Apr 22 2017
  */
 
-#ifndef TDC_DATA_H
-#define TDC_DATA_H
+#ifndef TDCPP_DATA_H
+#define TDCPP_DATA_H
 
 #include <stdint-gcc.h>
 #include <cstdio>
 #include <cstdlib>
 #include <map>
 #include <cinttypes>
-#include "TDC_utils.h"
+#include "TDCpp_utils.h"
 
 /**
  * The timestamps file has a 40 byte header that has to be skipped
  * */
-#define TDC_HEADER_SIZE 40
+#define TDCPP_HEADER_SIZE 40
 
 /**
  * An event is made of:
@@ -29,26 +29,26 @@
  *  - channel:    2byte,
  * Total: 10byte.
  * */
-#define TDC_TIMESTAMP_SIZE 8
-#define TDC_CHANNEL_SIZE 2
-#define TDC_RECORD_SIZE (TDC_TIMESTAMP_SIZE + TDC_CHANNEL_SIZE)
+#define TDCPP_TIMESTAMP_SIZE 8
+#define TDCPP_CHANNEL_SIZE 2
+#define TDCPP_RECORD_SIZE (TDCPP_TIMESTAMP_SIZE + TDCPP_CHANNEL_SIZE)
 
 /**
  * A bin is equivalent to 81ps (on average).
  * */
-#define TDC_BIN_SIZE 81E-12
+#define TDCPP_BIN_SIZE 81E-12
 
 /**
  * In one second (1s) there are 12345679012 bins.
  * */
-#define TDC_ONE_SEC_BINS 12345679012
+#define TDCPP_ONE_SEC_BINS 12345679012
 
 /**
  * This class is used to read and use timestamps data from ID800-TDC.
  *
  * @author Matteo Pompili (matpompili at gmail com)
  */
-class TDC_data {
+class TDCpp_data {
 
 protected:
     /**
@@ -95,13 +95,13 @@ public:
      * This is the default constructor.
      * It is called only by derived classes.
      * */
-    TDC_data();
+    TDCpp_data();
 
     /**
      * This is the default destructor.
      * It frees the arrays.
      * */
-    virtual ~TDC_data();
+    virtual ~TDCpp_data();
 
     /**
      * This is an additional constructor.
@@ -239,4 +239,4 @@ private:
     uint64_t find_one_second_index();
 };
 
-#endif //TDC_DATA_H
+#endif //TDCPP_DATA_H

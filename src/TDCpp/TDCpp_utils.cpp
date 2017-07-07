@@ -6,7 +6,7 @@
 #include <iostream>
 #include <thread>
 #include <cstring>
-#include "TDC_utils.h"
+#include "TDCpp_utils.h"
 
 #define NUM_THREADS 8
 

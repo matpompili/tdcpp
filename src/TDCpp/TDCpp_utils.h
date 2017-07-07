@@ -3,8 +3,8 @@
  * MSc. Physics Student @ La Sapienza
  * */
 
-#ifndef TDC_UTILS_H
-#define TDC_UTILS_H
+#ifndef TDCPP_UTILS_H
+#define TDCPP_UTILS_H
 
 #include <ctime>
 #include <functional>
@@ -19,4 +19,4 @@ void u64_vectorize_function(uint64_t* array, uint64_t arraySize, std::function<u
 
 void u64_apply_function(uint64_t* array, uint64_t start_index, uint64_t end_index, std::function<uint64_t (uint64_t)> func);
 
-#endif //TDC_UTILS_H
+#endif //TDCPP_UTILS_H

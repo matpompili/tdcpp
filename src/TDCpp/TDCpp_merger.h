@@ -10,33 +10,33 @@
  *
  * Created on: Apr 24 2017
  */
-#ifndef TDC_MERGER_H
-#define TDC_MERGER_H
+#ifndef TDCPP_MERGER_H
+#define TDCPP_MERGER_H
 
-#include "TDC_data.h"
+#include "TDCpp_data.h"
 #include <cmath>
 
 /**
  * A threshold to accept or reject the matching of two TDC_data objects.
  * This is the ratio between the cumulative sums of time_deltas.
  */
-#define TDC_MATCH_THRESHOLD 1000
+#define TDCPP_MATCH_THRESHOLD 1000
 
 /**
  * \brief This class is used to merge two TDC_data objects into one.
  * It uses a clock channel to match the two objects, and corrects the time derive with a linear fit.
  */
-class TDC_merger : public TDC_data {
+class TDCpp_merger : public TDCpp_data {
 protected:
     /**
      * A pointer to the first of the two objects that are going to be merged.
      */
-    TDC_data *first_data;
+    TDCpp_data *first_data;
 
     /**
      * A pointer to the second of the two objects that are going to be merged.
      */
-    TDC_data *second_data;
+    TDCpp_data *second_data;
 
     /**
      * A pointer to the clock array of the first object.
@@ -74,12 +74,12 @@ public:
      * @param first_data The first of the two TDC_data objects that are going to be merged.
      * @param second_data The second of the two TDC_data objects that are going to be merged.
      */
-    TDC_merger(TDC_data *first_data, TDC_data *second_data);
+    TDCpp_merger(TDCpp_data *first_data, TDCpp_data *second_data);
 
     /**
      * This is the default destructor.
      */
-    virtual ~TDC_merger();
+    virtual ~TDCpp_merger();
 
 private:
     /**
@@ -98,4 +98,4 @@ private:
 };
 
 
-#endif //TDC_MERGER_H
+#endif //TDCPP_MERGER_H

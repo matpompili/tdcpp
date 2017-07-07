@@ -5,17 +5,17 @@
 
 #include <iostream>
 #include <cstring>
-#include "TDC_data.h"
+#include "TDCpp_data.h"
 
-TDC_data::TDC_data() {
+TDCpp_data::TDCpp_data() {
 }
 
-TDC_data::~TDC_data() {
+TDCpp_data::~TDCpp_data() {
     free(this->timestamp);
     free(this->channel);
 }
 
-void TDC_data::load_from_file(const char *data_file_path, uint16_t clock, uint16_t box_number) {
+void TDCpp_data::load_from_file(const char *data_file_path, uint16_t clock, uint16_t box_number) {
     /// Open the file
     FILE *data_file = fopen(data_file_path, "rb");
 
@@ -25,7 +25,7 @@ void TDC_data::load_from_file(const char *data_file_path, uint16_t clock, uint16
 
         /// And it is not empty
         if (this->size > 0) {
-            char *read_buffer = (char *) malloc(this->size * TDC_RECORD_SIZE);
+            char *read_buffer = (char *) malloc(this->size * TDCPP_RECORD_SIZE);
             this->timestamp = (uint64_t *) malloc(this->size * sizeof(uint64_t));
             this->channel = (uint16_t *) malloc(this->size * sizeof(uint32_t));
 
@@ -33,18 +33,18 @@ void TDC_data::load_from_file(const char *data_file_path, uint16_t clock, uint16
                 log_error_and_exit("Could not allocate the memory to read a file.");
             }
             /// Seek until the end if the header
-            fseek(data_file, TDC_HEADER_SIZE, SEEK_SET);
+            fseek(data_file, TDCPP_HEADER_SIZE, SEEK_SET);
 
             /// Read the whole file in the buffer. Faster than reading record by record.
-            fread(read_buffer, TDC_RECORD_SIZE, this->size, data_file);
+            fread(read_buffer, TDCPP_RECORD_SIZE, this->size, data_file);
 
             /// Close the file, it is not longer needed
             fclose(data_file);
 
             /// Copy the data from the buffer to the arrays
             for (int i = 0; i < this->size; i++) {
-                memcpy(this->timestamp + i, read_buffer + i * TDC_RECORD_SIZE, TDC_TIMESTAMP_SIZE);
-                memcpy(this->channel + i, read_buffer + i * TDC_RECORD_SIZE + TDC_TIMESTAMP_SIZE, TDC_CHANNEL_SIZE);
+                memcpy(this->timestamp + i, read_buffer + i * TDCPP_RECORD_SIZE, TDCPP_TIMESTAMP_SIZE);
+                memcpy(this->channel + i, read_buffer + i * TDCPP_RECORD_SIZE + TDCPP_TIMESTAMP_SIZE, TDCPP_CHANNEL_SIZE);
             }
 
             free(read_buffer);
@@ -69,7 +69,7 @@ void TDC_data::load_from_file(const char *data_file_path, uint16_t clock, uint16
     this->offset = (int16_t *) calloc(this->num_channels, sizeof(int16_t));
 }
 
-uint64_t TDC_data::get_file_size(FILE *data_file) {
+uint64_t TDCpp_data::get_file_size(FILE *data_file) {
     if (data_file) {
         /// Get starting position
         const int64_t current_position = ftell(data_file);
@@ -82,9 +82,9 @@ uint64_t TDC_data::get_file_size(FILE *data_file) {
 
         fseek(data_file, current_position, SEEK_SET);
         /// If the file is big enough, i.e. at least the header and one record
-        if (file_size > TDC_HEADER_SIZE + TDC_RECORD_SIZE) {
+        if (file_size > TDCPP_HEADER_SIZE + TDCPP_RECORD_SIZE) {
             /// Get the number of records inside the file
-            file_size = (file_size - TDC_HEADER_SIZE) / TDC_RECORD_SIZE;
+            file_size = (file_size - TDCPP_HEADER_SIZE) / TDCPP_RECORD_SIZE;
         } else {
             /// Otherwise just say no events are available
             file_size = 0;
@@ -100,24 +100,24 @@ uint64_t TDC_data::get_file_size(FILE *data_file) {
     }
 }
 
-uint64_t TDC_data::get_timestamp(uint64_t index) const {
+uint64_t TDCpp_data::get_timestamp(uint64_t index) const {
     return *(this->timestamp + index);
 }
 
-uint16_t TDC_data::get_channel(uint64_t index) const {
+uint16_t TDCpp_data::get_channel(uint64_t index) const {
     return (uint16_t) (*(this->channel + index) + (this->box_number - 1) * 8 + 1);
 }
 
-uint64_t TDC_data::find_one_second_index() {
+uint64_t TDCpp_data::find_one_second_index() {
     uint64_t start_index = 0;
     uint64_t end_index = this->size - 1;
     uint64_t index;
     /// When start_index and end_index are just one position apart the search is completed.
     while (end_index - start_index > 1) {
         index = (end_index + start_index) / 2;
-        if (this->timestamp[index] > TDC_ONE_SEC_BINS + this->timestamp[0]) {
+        if (this->timestamp[index] > TDCPP_ONE_SEC_BINS + this->timestamp[0]) {
             end_index = index;
-        } else if (this->timestamp[index] < TDC_ONE_SEC_BINS + this->timestamp[0]) {
+        } else if (this->timestamp[index] < TDCPP_ONE_SEC_BINS + this->timestamp[0]) {
             start_index = index;
         } else {
             end_index = index;
@@ -129,7 +129,7 @@ uint64_t TDC_data::find_one_second_index() {
 
 }
 
-uint64_t TDC_data::get_clock_array(uint64_t *destination_array) {
+uint64_t TDCpp_data::get_clock_array(uint64_t *destination_array) {
     uint64_t index = 0;
     for (int i = 0; i < this->size; ++i) {
         /// If this event is a clock, add it to destination_array
@@ -143,7 +143,7 @@ uint64_t TDC_data::get_clock_array(uint64_t *destination_array) {
     return index;
 }
 
-uint64_t TDC_data::find_nth_clock(uint64_t n) {
+uint64_t TDCpp_data::find_nth_clock(uint64_t n) {
     uint64_t index = 0;
     do {
         if (*(this->channel + index) + 1 == this->clock) n--;
@@ -153,12 +153,12 @@ uint64_t TDC_data::find_nth_clock(uint64_t n) {
     return index - 1;
 }
 
-bool TDC_data::is_clock(uint64_t index) const {
+bool TDCpp_data::is_clock(uint64_t index) const {
     return (this->channel[index] + 1 == this->clock);
 }
 
 
-void TDC_data::find_n_fold_coincidences(uint16_t n,
+void TDCpp_data::find_n_fold_coincidences(uint16_t n,
                                         const char *singles_file_name,
                                         const char *coincidences_file_name,
                                         uint64_t coincidence_window,
@@ -311,7 +311,7 @@ void TDC_data::find_n_fold_coincidences(uint16_t n,
     fclose(coincidences_file);
 }
 
-void TDC_data::print_data_to_file(const char *output_file_path) {
+void TDCpp_data::print_data_to_file(const char *output_file_path) {
     FILE *output_file = fopen(output_file_path, "w");
     if (output_file) {
         for (uint64_t i = 0; i < this->size; ++i) {
@@ -326,7 +326,7 @@ void TDC_data::print_data_to_file(const char *output_file_path) {
     fclose(output_file);
 }
 
-void TDC_data::set_channel_offset(const char *offset_file_path) {
+void TDCpp_data::set_channel_offset(const char *offset_file_path) {
     FILE *offset_file = fopen(offset_file_path, "r");
     int16_t max_offset = 0;
 
@@ -369,7 +369,7 @@ void TDC_data::set_channel_offset(const char *offset_file_path) {
     fclose(offset_file);
 }
 
-void TDC_data::copy_timestamp_array(uint64_t *dest_array, uint64_t start_index, uint64_t n_events) {
+void TDCpp_data::copy_timestamp_array(uint64_t *dest_array, uint64_t start_index, uint64_t n_events) {
     if (start_index + n_events > this->size) {
         std::string error_string("Couldn't copy the timestamp array. Out of bounds.");
         log_error_and_exit(error_string.c_str());

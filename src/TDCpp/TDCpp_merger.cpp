@@ -4,9 +4,9 @@
  * */
 
 #include <iostream>
-#include "TDC_merger.h"
+#include "TDCpp_merger.h"
 
-TDC_merger::TDC_merger(TDC_data *first_data, TDC_data *second_data) {
+TDCpp_merger::TDCpp_merger(TDCpp_data *first_data, TDCpp_data *second_data) {
     this->first_data = first_data;
     this->second_data = second_data;
 
@@ -26,7 +26,7 @@ TDC_merger::TDC_merger(TDC_data *first_data, TDC_data *second_data) {
     this->merge(100);
 }
 
-TDC_merger::~TDC_merger() {
+TDCpp_merger::~TDCpp_merger() {
     this->first_data = nullptr;
     this->second_data = nullptr;
 
@@ -35,7 +35,7 @@ TDC_merger::~TDC_merger() {
     free(this->offset);
 }
 
-void TDC_merger::find_match(uint64_t max_shift, uint64_t time_depth) {
+void TDCpp_merger::find_match(uint64_t max_shift, uint64_t time_depth) {
     /// Allocate the arrays that will contains the clock events of the two objects.
     this->first_clocks = (uint64_t *) malloc(this->first_data->get_size() * sizeof(uint64_t));
     this->second_clocks = (uint64_t *) malloc(this->second_data->get_size() * sizeof(uint64_t));
@@ -99,14 +99,14 @@ void TDC_merger::find_match(uint64_t max_shift, uint64_t time_depth) {
         }
 
         if (min_distance_changed) {
-            if (custom_ratio(min_distance_backward, min_distance_forward) >= TDC_MATCH_THRESHOLD) i = max_shift;
+            if (custom_ratio(min_distance_backward, min_distance_forward) >= TDCPP_MATCH_THRESHOLD) i = max_shift;
         }
 
 
     }
 
     /// Check if the match is good
-    if (custom_ratio(min_distance_backward, min_distance_forward) < TDC_MATCH_THRESHOLD) {
+    if (custom_ratio(min_distance_backward, min_distance_forward) < TDCPP_MATCH_THRESHOLD) {
         char error_str[256];
         sprintf(error_str,
                 "Failed to find a match. Forward: %" PRIu64 ". Backward: %" PRIu64 ".",
@@ -126,7 +126,7 @@ void TDC_merger::find_match(uint64_t max_shift, uint64_t time_depth) {
     free(second_clock_deltas);
 }
 
-void TDC_merger::merge(uint64_t max_fit_points) {
+void TDCpp_merger::merge(uint64_t max_fit_points) {
     uint64_t starting_index_first, starting_index_second;
     uint64_t matching_clock_first, matching_clock_second;
 
@@ -286,7 +286,7 @@ void TDC_merger::merge(uint64_t max_fit_points) {
                 end_reached = true;
             }
         }
-    } while ((joint_index < this->size) && (this->timestamp[joint_index - 1] < TDC_ONE_SEC_BINS) && not end_reached);
+    } while ((joint_index < this->size) && (this->timestamp[joint_index - 1] < TDCPP_ONE_SEC_BINS) && not end_reached);
 
     /// This is the actual size of the joint array.
     this->size = joint_index;
