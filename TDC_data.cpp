@@ -163,6 +163,7 @@ void TDC_data::find_n_fold_coincidences(uint16_t n,
                                         const char *coincidences_file_name,
                                         uint64_t coincidence_window,
                                         bool legacyFormat) {
+
     /// Allocate and set to zero the array for single events.
     uint64_t *singles = (uint64_t *) calloc(this->num_channels, sizeof(uint64_t));
 
@@ -288,13 +289,15 @@ void TDC_data::find_n_fold_coincidences(uint16_t n,
     fprintf(singles_file, "%s", buffer);
     fclose(singles_file);
 
-    /// Save the coincidences
+    ///Reset the buffer
     buffer_cursor = 0;
+    sprintf(buffer, "");
 
+    /// Save the coincidences
     for (auto const &map_entry : coincidences_map) {
         if (!legacyFormat) {
             buffer_cursor +=
-                    sprintf(buffer + buffer_cursor, "%s\t%" PRIu64 "\n", map_entry.first.c_str(), map_entry.second);
+                    sprintf(buffer + buffer_cursor, "%s %" PRIu64 "\n", map_entry.first.c_str(), map_entry.second);
         } else {
             buffer_cursor +=
                     sprintf(buffer + buffer_cursor, "%s\n", map_entry.first.c_str());

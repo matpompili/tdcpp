@@ -1,11 +1,9 @@
 /**
- * \class TDC_data
+ * @class TDC_data
  *
- * \brief This class is used to read and use timestamps data from ID800-TDC.
+ * @brief This class is used to read and use timestamps data from ID800-TDC.
  *
- * \author $Author: Matteo Pompili$
- *
- * Contact: matpompili\@ gmail.com
+ * @author Matteo Pompili (matpompili@ gmail.com)
  *
  * Created on: Apr 22 2017
  */
@@ -47,6 +45,8 @@
 
 /**
  * This class is used to read and use timestamps data from ID800-TDC.
+ *
+ * @author Matteo Pompili (matpompili at gmail com)
  */
 class TDC_data {
 
