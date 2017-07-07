@@ -55,9 +55,8 @@ void TDCpp_data::load_from_file(const char *data_file_path, uint16_t clock, uint
         log_error_and_exit(error_string.c_str());
     }
 
-    /**
-     * Set the remaining members of the class.
-     */
+
+    // Set the remaining members of the class.
     this->clock = clock;
     this->box_number = box_number;
     this->num_channels = 8;
