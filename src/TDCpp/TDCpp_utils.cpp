@@ -8,6 +8,7 @@
 void log_error_and_exit(const char *error_message) {
     std::cerr << "Fatal error: " << error_message << std::endl;
     FILE* logFile = fopen("error.log", "a+");
+
     if (logFile) {
         // Get the current time. https://stackoverflow.com/a/1531191/1365456
         time_t current_time;
@@ -21,6 +22,9 @@ void log_error_and_exit(const char *error_message) {
         // Print error and timestamp
         fprintf(logFile, "%s::Fatal error::%s\n", timeString, error_message);
     }
+
+    FILE *error_file = fopen("error.task", "w");
+    fclose(error_file);
 
     exit(EXIT_FAILURE);
 }

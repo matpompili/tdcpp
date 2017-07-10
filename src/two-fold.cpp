@@ -42,8 +42,7 @@ int main() {
 
     delete all_together;
 
-    FILE *done_file = fopen("done.task", "w+");
-    fprintf(done_file, "Task completed.\n");
+    FILE *done_file = fopen("done.task", "w");
     fclose(done_file);
 
 #ifdef TIME_PROGRAM
