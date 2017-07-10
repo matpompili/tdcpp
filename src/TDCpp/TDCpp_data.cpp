@@ -152,6 +152,8 @@ bool TDCpp_data::is_clock(uint64_t index) const {
 }
 
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wuninitialized"
 void TDCpp_data::find_n_fold_coincidences(uint16_t n,
                                         const char *singles_file_name,
                                         const char *coincidences_file_name,
@@ -168,25 +170,35 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
     // A map that will hold the count of each possible coincidence.
     std::map<std::string, uint64_t> coincidences_map;
 
-    uint16_t coincidence_channel_index = 0;
-    uint64_t coincidence_window_start = this->timestamp[0];
-
-    singles[this->channel[0]] += 1;
-    coincidence_channel[0] = this->channel[0];
-    coincidence_channel_index++;
+    uint16_t coincidence_channel_index;
+    uint64_t coincidence_window_start;
 
     bool is_coincidence_still_good = true;
+    bool start_new_window = true;
     bool is_channel_acceptable;
     std::string coincidence_key;
 
     // While there are events
-    for (uint64_t i = 1; i < this->size; ++i) {
+    for (uint64_t i = 0; i < this->size; ++i) {
 
         // Increase the singles count
         singles[this->channel[i]] += 1;
 
+        if (start_new_window) {
+            coincidence_window_start = this->timestamp[i];
+            coincidence_channel[0] = this->channel[i];
+            coincidence_channel_index = 1;
+            for (uint16_t j = 1; j < n; ++j) {
+                coincidence_channel[j] = 0;
+            }
+
+            start_new_window = false;
+            continue;
+        }
+
         // If the event is in the coincidence window
-        if ((this->timestamp[i] - coincidence_window_start <= coincidence_window)) {
+        if (this->timestamp[i] - coincidence_window_start <= coincidence_window) {
+
             // If there have not been already too much events in this window
             if (coincidence_channel_index < n) {
                 // Check if an event with the same channel as already been detected in this window
@@ -197,7 +209,6 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
                     }
                 }
 
-                // If the channel is acceptable
                 if (is_channel_acceptable) {
                     // Add it to the coincidence
                     coincidence_channel[coincidence_channel_index] = this->channel[i];
@@ -212,59 +223,59 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
 
             }
         } else {
-            // Save the last coincidence, if there is one
-            if (is_coincidence_still_good && (coincidence_channel_index == n)) {
+            // If this event is too close to the last one, which closed the coincidence
+            // window, mark the next window as already not usable
+            if (this->timestamp[i] - this->timestamp[i-1] <= coincidence_window) {
+                is_coincidence_still_good = false;
+            }
 
-                // Sort the #coincidence_channel array
-                int32_t j;
-                for (uint16_t k = 1; k < n; ++k) {
-                    uint16_t channel_value = coincidence_channel[k];
-                    j = k - 1;
+            if (is_coincidence_still_good) {
+                if (coincidence_channel_index == n) {
+                    // Sort the coincidence_channel array
+                    int32_t j;
+                    for (uint16_t k = 1; k < n; ++k) {
+                        uint16_t channel_value = coincidence_channel[k];
+                        j = k - 1;
 
-                    while ((j >= 0) && (coincidence_channel[j] > channel_value)) {
-                        coincidence_channel[j+1] = coincidence_channel[j];
-                        j = j - 1;
-                    }
-
-                    coincidence_channel[j+1] = channel_value;
-                }
-
-                coincidence_key = "";
-
-                if (!legacyFormat) {
-
-                    for (j = 0; j < n; ++j) {
-                        if (coincidence_channel[j] + 1 < 10) {
-                            coincidence_key.append("0");
+                        while ((j >= 0) && (coincidence_channel[j] > channel_value)) {
+                            coincidence_channel[j+1] = coincidence_channel[j];
+                            j = j - 1;
                         }
-                        coincidence_key.append(std::to_string(coincidence_channel[j] + 1));
-                        coincidence_key.append("_");
+
+                        coincidence_channel[j+1] = channel_value;
                     }
-                    coincidence_key.pop_back();
-                    coincidences_map[coincidence_key] += 1;
-                } else {
-                    for (j = 0; j < n; ++j) {
-                        coincidence_key.append(std::to_string(coincidence_channel[j] + 1));
-                        coincidence_key.append(" ");
+
+                    //Generate a key for the coincidence and save it
+                    coincidence_key = "";
+
+                    if (!legacyFormat) {
+
+                        for (j = 0; j < n; ++j) {
+                            if (coincidence_channel[j] + 1 < 10) {
+                                coincidence_key.append("0");
+                            }
+                            coincidence_key.append(std::to_string(coincidence_channel[j] + 1));
+                            coincidence_key.append("_");
+                        }
+                        coincidence_key.pop_back();
+                        coincidences_map[coincidence_key] += 1;
+                    } else {
+                        for (j = 0; j < n; ++j) {
+                            coincidence_key.append(std::to_string(coincidence_channel[j] + 1));
+                            coincidence_key.append(" ");
+                        }
+                        coincidence_key.append("%");
+                        coincidences_map[coincidence_key] += 1;
                     }
-                    coincidence_key.append("%");
-                    coincidences_map[coincidence_key] += 1;
                 }
 
-
+                //Mark the next coincidence window as valid
+                is_coincidence_still_good = true;
             }
 
             // Start a new window
-            coincidence_window_start = this->timestamp[i];
-            coincidence_channel[0] = this->channel[i];
-            coincidence_channel_index = 1;
-            for (uint16_t j = 1; j < n; ++j) {
-                coincidence_channel[j] = 0;
-            }
-            is_coincidence_still_good = true;
-
+            start_new_window = true;
         }
-
     }
 
     // Save the singles
@@ -304,6 +315,7 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
     fprintf(coincidences_file, "%s", buffer);
     fclose(coincidences_file);
 }
+#pragma clang diagnostic pop
 
 void TDCpp_data::print_data_to_file(const char *output_file_path) {
     FILE *output_file = fopen(output_file_path, "w");

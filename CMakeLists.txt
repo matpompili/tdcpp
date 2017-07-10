@@ -3,8 +3,8 @@ project(tdcpp)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_C_FLAGS "-march=native -mtune=native -O2")
-set(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})
+#set(CMAKE_C_FLAGS "-march=native -mtune=native -O2")
+#set(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})
 
 set(SOURCE_FILES_COMMON src/TDCpp/TDCpp_data.cpp src/TDCpp/TDCpp_data.h src/TDCpp/TDCpp_merger.cpp src/TDCpp/TDCpp_merger.h src/TDCpp/TDCpp_utils.cpp src/TDCpp/TDCpp_utils.h)
 
