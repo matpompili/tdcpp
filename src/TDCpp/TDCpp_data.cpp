@@ -152,8 +152,6 @@ bool TDCpp_data::is_clock(uint64_t index) const {
 }
 
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wuninitialized"
 void TDCpp_data::find_n_fold_coincidences(uint16_t n,
                                         const char *singles_file_name,
                                         const char *coincidences_file_name,
@@ -170,33 +168,21 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
     // A map that will hold the count of each possible coincidence.
     std::map<std::string, uint64_t> coincidences_map;
 
-    uint16_t coincidence_channel_index;
-    uint64_t coincidence_window_start;
+    uint16_t coincidence_channel_index = 1;
+    uint64_t coincidence_window_start = this->timestamp[0];
+    coincidence_channel[0] = this->channel[0];
+    singles[this->channel[0]] += 1;
 
-    bool is_coincidence_still_good = true;
-    bool is_starting_coincidence_good = true;
-    bool start_new_window = true;
+    bool is_coincidence_valid = true;
+    bool is_new_window_valid;
     bool is_channel_acceptable;
     std::string coincidence_key;
 
-    // While there are events
-    for (uint64_t i = 0; i < this->size; ++i) {
+    // For each event
+    for (uint64_t i = 1; i < this->size; ++i) {
 
         // Increase the singles count
         singles[this->channel[i]] += 1;
-
-        if (start_new_window) {
-            coincidence_window_start = this->timestamp[i];
-            coincidence_channel[0] = this->channel[i];
-            coincidence_channel_index = 1;
-            for (uint16_t j = 1; j < n; ++j) {
-                coincidence_channel[j] = 0;
-            }
-
-            is_coincidence_still_good = is_starting_coincidence_good;
-            start_new_window = false;
-            continue;
-        }
 
         // If the event is in the coincidence window
         if (this->timestamp[i] - coincidence_window_start <= coincidence_window) {
@@ -216,28 +202,24 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
                     coincidence_channel[coincidence_channel_index] = this->channel[i];
                     coincidence_channel_index++;
                 } else {
-                    // Mark the coincidence as not usable
-                    is_coincidence_still_good = false;
+                    // Mark the coincidence as not valid
+                    is_coincidence_valid = false;
                 }
             } else {
-                // Mark the coincidence as not usable, too many events.
-                is_coincidence_still_good = false;
-
+                // Mark the coincidence as not valid, too many events.
+                is_coincidence_valid = false;
             }
         } else {
-            // Start a new window
-            start_new_window = true;
-
             // If this event is too close to the last one, which closed the coincidence
-            // window, mark the next window as already not usable
+            // window, mark the coincidence, as well as the next window, not valid.
             if (this->timestamp[i] - this->timestamp[i-1] <= coincidence_window) {
-                is_coincidence_still_good = false;
-                is_starting_coincidence_good = false;
+                is_coincidence_valid = false;
+                is_new_window_valid  = false;
             } else {
-                is_starting_coincidence_good = true;
+                is_new_window_valid = true;
             }
 
-            if (is_coincidence_still_good) {
+            if (is_coincidence_valid) {
                 if (coincidence_channel_index == n) {
                     // Sort the coincidence_channel array
                     int32_t j;
@@ -278,6 +260,17 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
                 }
 
             }
+
+            // Start the new window
+            coincidence_window_start = this->timestamp[i];
+            coincidence_channel[0] = this->channel[i];
+            coincidence_channel_index = 1;
+            for (uint16_t j = 1; j < n; ++j) {
+                coincidence_channel[j] = 0;
+            }
+
+            // Start the new window as already invalid, if that's the case
+            is_coincidence_valid = is_new_window_valid;
 
         }
     }
