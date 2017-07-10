@@ -174,6 +174,7 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
     uint64_t coincidence_window_start;
 
     bool is_coincidence_still_good = true;
+    bool is_starting_coincidence_good = true;
     bool start_new_window = true;
     bool is_channel_acceptable;
     std::string coincidence_key;
@@ -192,6 +193,7 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
                 coincidence_channel[j] = 0;
             }
 
+            is_coincidence_still_good = is_starting_coincidence_good;
             start_new_window = false;
             continue;
         }
@@ -223,10 +225,16 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
 
             }
         } else {
+            // Start a new window
+            start_new_window = true;
+
             // If this event is too close to the last one, which closed the coincidence
             // window, mark the next window as already not usable
             if (this->timestamp[i] - this->timestamp[i-1] <= coincidence_window) {
                 is_coincidence_still_good = false;
+                is_starting_coincidence_good = false;
+            } else {
+                is_starting_coincidence_good = true;
             }
 
             if (is_coincidence_still_good) {
@@ -269,12 +277,8 @@ void TDCpp_data::find_n_fold_coincidences(uint16_t n,
                     }
                 }
 
-                //Mark the next coincidence window as valid
-                is_coincidence_still_good = true;
             }
 
-            // Start a new window
-            start_new_window = true;
         }
     }
 
