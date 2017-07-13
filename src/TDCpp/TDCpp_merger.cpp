@@ -64,12 +64,17 @@ void TDCpp_merger::find_match(uint64_t max_shift, uint64_t time_depth) {
 
     // Evaluate the time differences.
     for (uint64_t i = 0; i < max_shift; ++i) {
+        uint64_t i_back = i+1;
+
+        if (i == max_shift -1 ){
+            i_back = i;
+        }
         min_distance_changed = false;
         distance_backward = distance_forward = 0;
         for (uint64_t j = 0; j < time_depth; ++j) {
-            // Here #i is the delay between the objects. #j is the time index.
+            // Here i is the delay between the objects. j is the time index.
             distance_forward += abs_diff_64(first_clock_deltas[j], second_clock_deltas[i + j]);
-            distance_backward += abs_diff_64(first_clock_deltas[i + j], second_clock_deltas[j]);
+            distance_backward += abs_diff_64(first_clock_deltas[i_back + j], second_clock_deltas[j]);
         }
 
         // Need just on the first step.
@@ -77,7 +82,7 @@ void TDCpp_merger::find_match(uint64_t max_shift, uint64_t time_depth) {
             min_distance_forward = distance_forward;
             min_distance_forward_position = 0;
             min_distance_backward = distance_backward;
-            min_distance_backward_position = 0;
+            min_distance_backward_position = 1;
             min_distance_changed = true;
         } else {
             if (distance_forward < min_distance_forward) {
@@ -88,7 +93,7 @@ void TDCpp_merger::find_match(uint64_t max_shift, uint64_t time_depth) {
 
             if (distance_backward < min_distance_backward) {
                 min_distance_backward = distance_backward;
-                min_distance_backward_position = i;
+                min_distance_backward_position = i_back;
                 min_distance_changed = true;
             }
         }
@@ -100,15 +105,6 @@ void TDCpp_merger::find_match(uint64_t max_shift, uint64_t time_depth) {
 
     }
 
-    // Check if the match is good
-    if (custom_ratio(min_distance_backward, min_distance_forward) < TDCPP_MATCH_THRESHOLD) {
-        char error_str[256];
-        sprintf(error_str,
-                "Failed to find a match. Forward: %" PRIu64 ". Backward: %" PRIu64 ".",
-                min_distance_forward, min_distance_backward);
-        log_error_and_exit(error_str);
-    }
-
     if (min_distance_forward < min_distance_backward) {
         this->matching_clock = min_distance_forward_position + 1;
         this->box_to_match = 2;
@@ -116,6 +112,17 @@ void TDCpp_merger::find_match(uint64_t max_shift, uint64_t time_depth) {
         this->matching_clock = min_distance_backward_position + 1;
         this->box_to_match = 1;
     }
+
+    // Check if the match is good
+    if ((custom_ratio(min_distance_backward, min_distance_forward) < TDCPP_MATCH_THRESHOLD)) {
+        char error_str[256];
+        sprintf(error_str,
+                "Failed to find a match. Forward: %" PRIu64 ". Backward: %" PRIu64 ".",
+                min_distance_forward, min_distance_backward);
+        log_error_and_exit(error_str);
+    }
+
+
 
     free(first_clock_deltas);
     free(second_clock_deltas);
